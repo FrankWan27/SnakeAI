@@ -44,12 +44,14 @@ held = ''
 holdUsed = False
 currentShape = Shape()
 upcoming = []
+ticker = 0
 
 score = 0
 
 #Core game loop
 def startGame():
     global gameDisplay
+    global ticker
     global currentShape
     pygame.init()
     gameDisplay = pygame.display.set_mode((600, 800))
@@ -187,6 +189,8 @@ def handleInput():
                 if event.key == pygame.K_DOWN:
                     moveDown()
                 if event.key == pygame.K_UP:
+                    rotateRight()
+                if event.key == pygame.K_SPACE:
                     fastDrop()
                 if event.key == pygame.K_LSHIFT:
                     hold()
@@ -228,8 +232,10 @@ def rotateLeft():
     global currentShape
     removeShape()
     currentShape.shape = rotateShape(currentShape.shape, 3)
-    if checkCollision(currentShape):
+    if checkWallKick(currentShape, -1):
         currentShape.shape = rotateShape(currentShape.shape, 1)
+        currentShape.rotation += 1
+    currentShape.rotation -= 1
     addShape()
 
 #Rotate currentShape right
@@ -237,9 +243,84 @@ def rotateRight():
     global currentShape
     removeShape()
     currentShape.shape = rotateShape(currentShape.shape, 1)
-    if checkCollision(currentShape):
+
+
+    if checkWallKick(currentShape, 1):
         currentShape.shape = rotateShape(currentShape.shape, 3)
+        currentShape.rotation -= 1
+    currentShape.rotation += 1
     addShape()
+
+#Returns True if all wall kicks fail
+def checkWallKick(currentShape, direction):
+    rot = currentShape.rotation%4
+
+    #https://tetris.wiki/Super_Rotation_System#Wall_Kicks
+    restKicks = {
+        'oToR':[(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+        'rToO':[(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+        'rToF':[(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+        'fToR':[(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+        'fToL':[(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
+        'lToF':[(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+        'lToO':[(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+        'oToL':[(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)]
+    }
+    iKicks = {
+        'oToR':[(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],
+        'rToO':[(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+        'rToF':[(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],
+        'fToR':[(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],
+        'fToL':[(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+        'lToF':[(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],
+        'lToO':[(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],
+        'oToL':[(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)]
+    }
+
+    code = ''
+    if rot == 0 and direction == 1:
+        code = 'oToR'
+    elif rot == 1 and direction == -1:
+        code = 'rToO'
+    elif rot == 1 and direction == 1:
+        code = 'rToF'
+    elif rot == 2 and direction == -1:
+        code = 'fToR'
+    elif rot == 2 and direction == 1:
+        code = 'fToL'
+    elif rot == 3 and direction == -1:
+        code = 'lToF'
+    elif rot == 3 and direction == 1:
+        code = 'lToO'
+    elif rot == 0 and direction == -1:
+        code = 'oToL'
+    else:
+        print('Invalid Rotation!')
+        code = 'oToR'
+
+    if currentShape.letter == 'O':
+        return False
+    elif currentShape.letter == 'I':
+        for kick in iKicks[code]:
+            currentShape.x += kick[0]
+            currentShape.y += kick[1]
+            if not checkCollision(currentShape):
+                return False
+            currentShape.x -= kick[0]
+            currentShape.y -= kick[1]
+    else:
+        for kick in restKicks[code]:
+            currentShape.x += kick[0]
+            currentShape.y += kick[1]
+            if not checkCollision(currentShape):
+                return False
+            currentShape.x -= kick[0]
+            currentShape.y -= kick[1]
+
+    return True
+
+
+
 
 def rotateShape(shape, rotations):
     for i in range(rotations):
@@ -282,7 +363,6 @@ def hold():
 
     removeShape()
     if(held == ''):
-        print('sdf')
         held = currentShape.letter
         currentShape = getNextShape()
     else:
@@ -330,6 +410,9 @@ def checkCollision(currentShape):
 
 #Returns next upcoming shape
 def getNextShape():
+    global ticker
+    ticker = 0
+
     tempShape = Shape(upcoming[0])
     upcoming[0] = upcoming[1]
     upcoming[1] = upcoming[2]
@@ -358,7 +441,6 @@ def clearRows():
     global holdUsed
 
     holdUsed = False
-    print(grid.shape)
     #List of rows that are full
     rows = []
     for y in reversed(range(len(grid[0]))):

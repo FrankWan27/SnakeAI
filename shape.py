@@ -15,6 +15,7 @@ class Shape:
 	y = 0
 	shape = []
 	letter = ''
+	rotation = 0
 
 	def __init__(self, shapeLetter='S'):
 		self.letter = shapeLetter
