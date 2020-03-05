@@ -3,10 +3,20 @@
 import pygame
 import numpy as np
 import random
+import sys
+import os
 from shape import Shape
 #setup global vars
 gameDisplay = ''
 grid = np.zeros((10, 20))
+
+
+if getattr(sys, 'frozen', False): # PyInstaller adds this attribute
+    # Running in a bundle
+    CurrentPath = sys._MEIPASS
+else:
+    # Running in normal Python environment
+    CurrentPath = os.path.dirname(__file__)
 
 #official shape and orientation
 #https://tetris.wiki/Super_Rotation_System
@@ -54,7 +64,7 @@ def startGame():
     pygame.init()
     gameDisplay = pygame.display.set_mode((600, 800))
     pygame.display.set_caption('Tetris AI')
-    bg = pygame.image.load('img/BG.png')
+    #bg = pygame.image.load(os.path.join(CurrentPath, 'img/BG.png'))
     resetGame()
 
     currentShape = getNextShape()
@@ -79,7 +89,7 @@ def startGame():
             ticker = 0
 
         #Draw everything to screen
-        gameDisplay.blit(bg, (0, 0))
+        #gameDisplay.blit(bg, (0, 0))
         showFPS(dt, gameTime)
         showScore()
         showNext()
