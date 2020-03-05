@@ -40,7 +40,8 @@ colors = {
 
 speeds = [500, 100, 1, 0]
 speedSetting = speeds[0]
-hold = ''
+held = ''
+holdUsed = False
 currentShape = Shape()
 upcoming = []
 
@@ -49,6 +50,7 @@ score = 0
 #Core game loop
 def startGame():
     global gameDisplay
+    global currentShape
     pygame.init()
     gameDisplay = pygame.display.set_mode((600, 800))
     pygame.display.set_caption('Tetris AI')
@@ -81,6 +83,7 @@ def startGame():
         showFPS(dt, gameTime)
         showScore()
         showNext()
+        showHeld()
         showGrid()
         
         pygame.display.update()
@@ -89,12 +92,12 @@ def startGame():
 
 def resetGame():
     global grid
-    global hold
+    global held
     global upcoming
     global score
 
     grid = np.zeros((10, 20))
-    hold = ''
+    held = ''
     upcoming = generateUpcoming()
     score = 0
 
@@ -122,18 +125,46 @@ def showGrid():
                 pygame.draw.rect(gameDisplay, pygame.Color('white'), (xOffset + x * 30, yOffset + y * 30, 30, 30))
                 pygame.draw.rect(gameDisplay, pygame.Color(colors[grid[x][y]]), (1 + xOffset + x * 30, 1 + yOffset + y * 30, 28, 28))
 
-
+#Show next 4 blocks
 def showNext():
-    nextShape = createShape(upcoming[0])
-    #pygame.draw.rect(gameDisplay, pygame.Color('red'), nextShape[0])
-    
+    xOffset = 475
+    yBase = 215
+    yOffset = 125
+
+    for i in range(4):
+        if i == 1:
+            xOffset -= 5
+            yOffset -= 5
+        nextShape = createShape(upcoming[i])
+
+        for rect in nextShape:
+            pygame.draw.rect(gameDisplay, pygame.Color('white'), rect.move(xOffset, yBase +  yOffset * i))
+            pygame.draw.rect(gameDisplay, pygame.Color(colors[upcoming[i]]), (1 + xOffset + rect.x, 1 + yBase + yOffset * i + rect.y, rect.width - 2, rect.height - 2))   
+
+#Show held block
+def showHeld():
+    xOffset = 35
+    yOffset = 215
+
+    if held != '':
+        nextShape = createShape(held)
+        for rect in nextShape:
+            pygame.draw.rect(gameDisplay, pygame.Color('white'), rect.move(xOffset, yOffset))
+            pygame.draw.rect(gameDisplay, pygame.Color(colors[held]), (1 + xOffset + rect.x, 1 + yOffset + rect.y, rect.width - 2, rect.height - 2))   
+
 def createShape(shape):
     rectList = []
-    if(shape == 'S'):
-        rectList.append(pygame.Rect(30, 0, 31, 31))
-        rectList.append(pygame.Rect(0, 0, 31, 31))
-        rectList.append(pygame.Rect(0, 0, 31, 31))
-        rectList.append(pygame.Rect(0, 0, 31, 31))
+    for x in range(len(shapes[shape])):
+        for y in range(len(shapes[shape][0])):
+            if shapes[shape][x][y] == 1:
+                rectList.append(pygame.Rect(x * 22, y * 22, 22, 22))
+            elif shapes[shape][x][y] == 4:
+                rectList.append(pygame.Rect(14 + x * 30, y * 30, 30, 30))
+            elif shapes[shape][x][y] != 0:
+                rectList.append(pygame.Rect(x * 30, y * 30, 30, 30))
+    return rectList
+
+
 
     return rectList
 
@@ -149,11 +180,17 @@ def handleInput():
                     moveLeft()
                 if event.key == pygame.K_RIGHT:
                     moveRight()
+                if event.key == pygame.K_z:
+                    rotateLeft()
+                if event.key == pygame.K_x:
+                    rotateRight()
                 if event.key == pygame.K_DOWN:
                     moveDown()
                 if event.key == pygame.K_UP:
                     fastDrop()
-                
+                if event.key == pygame.K_LSHIFT:
+                    hold()
+
 
 #Adds currentShape to the grid
 def addShape():
@@ -186,6 +223,35 @@ def moveRight():
         currentShape.x -= 1
     addShape()
 
+#Rotate currentShape left
+def rotateLeft():
+    global currentShape
+    removeShape()
+    currentShape.shape = rotateShape(currentShape.shape, 3)
+    if checkCollision(currentShape):
+        currentShape.shape = rotateShape(currentShape.shape, 1)
+    addShape()
+
+#Rotate currentShape right
+def rotateRight():
+    global currentShape
+    removeShape()
+    currentShape.shape = rotateShape(currentShape.shape, 1)
+    if checkCollision(currentShape):
+        currentShape.shape = rotateShape(currentShape.shape, 3)
+    addShape()
+
+def rotateShape(shape, rotations):
+    for i in range(rotations):
+        for x in range(0, int(len(shape)/2)): 
+            for y in range(x, len(shape)-x-1): 
+                temp = shape[x][y] 
+                shape[x][y] = shape[y][len(shape) - x - 1] 
+                shape[y][len(shape) - x - 1] = shape[len(shape) - x - 1][len(shape) - y - 1] 
+                shape[len(shape) - x - 1][len(shape) - y - 1] = shape[len(shape) - y - 1][x] 
+                shape[len(shape) - y - 1][x] = temp 
+    return shape
+
 #Move currentShape right 1 tile
 def moveDown():
     global currentShape
@@ -204,6 +270,30 @@ def moveDown():
 
     score += 1
     addShape()
+
+#Hold currentShape
+def hold():
+    global currentShape
+    global held
+    global holdUsed
+
+    if(holdUsed):
+        return
+
+    removeShape()
+    if(held == ''):
+        print('sdf')
+        held = currentShape.letter
+        currentShape = getNextShape()
+    else:
+        temp = held
+        held = currentShape.letter
+        currentShape = Shape(temp)
+        currentShape.x = (int)(len(grid) / 2 - len(currentShape.shape) / 2)
+
+    holdUsed = True
+    addShape()
+
 
 #Move currentShape to the bottom
 def fastDrop():
@@ -265,6 +355,10 @@ def generateUpcoming():
 def clearRows():
     global grid
     global score
+    global holdUsed
+
+    holdUsed = False
+    print(grid.shape)
     #List of rows that are full
     rows = []
     for y in reversed(range(len(grid[0]))):
@@ -296,7 +390,7 @@ def clearRows():
 
     #delete rows to clear
     for row in rows:
-        np.delete(grid, row, 1)
+        grid = np.delete(grid, row, 1)
 
     #add missing rows 
     tempRows = np.zeros((10, len(rows)))
