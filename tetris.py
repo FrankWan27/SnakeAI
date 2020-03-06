@@ -192,7 +192,7 @@ def handleInput():
                 pygame.display.quit()
                 pygame.quit()
                 return False
-            elif event.type == pygame.KEYDOWN and not player:
+            elif event.type == pygame.KEYDOWN and player:
                 if event.key == pygame.K_LEFT:
                     moveLeft()
                 if event.key == pygame.K_RIGHT:
@@ -515,27 +515,38 @@ def handleLoss():
     suisei.moveToNextNnet()
     resetGame()
 
+def arrayToOnes(arr, result):
+    for x in range(len(arr)):
+        for y in range(len(arr[0])):
+            if arr[x][y] > 0:
+                result.append(1)
+            else:
+                result.append(0)
+    return result
+
+
 def getNeuralInput():
+    inputs = []
     #Add grid
-    inputs = grid.flatten()
+    arrayToOnes(grid, inputs)
 
     #Add current shape (rotation information is saved in shape)
-    inputs = np.append(inputs, np.array(currentShape.shape).flatten())
+    arrayToOnes(currentShape.shape, inputs)
 
     #Add current x and y
-    inputs = np.append(inputs, currentShape.x)
-    inputs = np.append(inputs, currentShape.y)
+    inputs.append(currentShape.x)
+    inputs.append(currentShape.y)
 
     #Add next 4 shapes
-    #Possibly just append the letter as an optimization same as held
+    #Append the letter as ascii as an optimization same as held
     for shape in upcoming:
-        inputs = np.append(inputs, np.array(shapes[shape]).flatten())
+        inputs.append(ord(shape))
 
     #Add held shape
     if held == '':
-        inputs = np.append(inputs, np.zeros(16))
+        inputs.append(0)
     else:
-        inputs = np.append(inputs,np.array(shapes[held]).flatten())
+        inputs.append(ord(held))
 
     return inputs
 

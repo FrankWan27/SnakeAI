@@ -3,8 +3,8 @@ import scipy.special
 
 class Nnet:
 
-	#Input: Grid (10 x 20) + currentShape (4 x 4) + currentShape.x + currentShape.y + nextShape (4 x 4) x 4 + heldShape (4 x 4) = 298
-	numInputs = 298
+	#Input: Grid (10 x 20) + currentShape (4 x 4) + currentShape.x + currentShape.y + nextShape x 4 + heldShape = 223
+	numInputs = 223
 
 	#Hidden Layer: I don't really know what I'm doing here so putting arbitrary value
 	numHidden = 20
@@ -12,7 +12,7 @@ class Nnet:
 	#Output: moveLeft, moveRight, rotateLeft, rotateRight, fastDrop, slowDrop, holdBlock, doNothing
 	numOutputs = 8
 
-	#Weights: 20 x 298 matrix
+	#Weights: 20 x 223 matrix
 	wInputToHidden = []
 
 	#Weights: 8 x 20 matrix
@@ -36,6 +36,7 @@ class Nnet:
 
 		#inputs = ndarray[298x1]
 		inputs = np.array(inputList, ndmin=2).T
+
 		hiddenValues = scipy.special.expit(np.dot(self.wInputToHidden, inputs))
 		outputs = scipy.special.expit(np.dot(self.wHiddenToOutput, hiddenValues))
 
@@ -48,6 +49,8 @@ class Nnet:
 		self.wInputToHidden = Nnet.mixArrays(mom.wInputToHidden, dad.wInputToHidden)
 		self.wHiddenToOutput = Nnet.mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput)
 
+
+	#Simply picks a value between the two parents for every weight v
 	def mixArrays(a1, a2):
 		rows = a1.shape[0]
 		cols = a1.shape[1]
