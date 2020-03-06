@@ -81,7 +81,8 @@ def startGame():
         runLoop = handleInput()
 
         #Get AI's best move
-        doBestMove(getNeuralInput())
+        if not player:
+            doBestMove(getNeuralInput())
 
         dt = clock.tick(300)
         gameTime += dt
@@ -118,7 +119,7 @@ def resetGame():
     score = 0
 
 def showLabel(data, text, x, y):
-    font = pygame.font.SysFont("monospace", 20)
+    font = pygame.font.Font("fonts/abel.ttf", 20)
     label = font.render('{} {}'.format(text, data), 1, (40,40,250))
     gameDisplay.blit(label, (x, y))
     return y + 20
@@ -131,17 +132,16 @@ def showDebug(dt, gameTime):
     yOffset = showLabel(suisei.generation, 'Current Generation: ', xOffset, yOffset)
     yOffset = showLabel(suisei.currentNnet, 'Current Nnet: ', xOffset, yOffset)
 
-    xOffset -= 10
-    yOffset += 650
+    yOffset += 640
     yOffset = showLabel(suisei.highscore, 'Highscore (This Gen):', xOffset, yOffset)
     yOffset = showLabel(suisei.highestScore, 'Highest Score So Far:', xOffset, yOffset)
     yOffset = showLabel(suisei.highestGen, 'Best Gen So Far:', xOffset, yOffset)
 
 def showScore():
-    font = pygame.font.SysFont("Sans Serif", 80)
+    font = pygame.font.Font("fonts/abel.ttf", 80)
     label = font.render('{}'.format(score), 1, (0, 0, 0))
     offset = font.size('{}'.format(score))
-    gameDisplay.blit(label, (390 - offset[0], 732))
+    gameDisplay.blit(label, (390 - offset[0], 707))
 
 def showGrid():
     xOffset = 150
@@ -512,7 +512,7 @@ def clearRows():
     tempRows = np.zeros((10, len(rows)))
     grid = np.hstack((tempRows, grid))
 
-
+#Current player or Nnet lost
 def handleLoss():
     print('U Lost')
     
@@ -521,6 +521,7 @@ def handleLoss():
     suisei.moveToNextNnet()
     resetGame()
 
+#Converts a 2D Array to a 1D list, and converts anything > 0 to 1
 def arrayToOnes(arr, result):
     for x in range(len(arr)):
         for y in range(len(arr[0])):

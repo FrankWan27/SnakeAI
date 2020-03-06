@@ -114,6 +114,7 @@ class Nnets:
 
 		self.generation += 1
 		self.currentNnet = 0
+		self.highscore = 0
 		self.nnets = newNnets
 
 	def makeChild(self, mom, dad):
