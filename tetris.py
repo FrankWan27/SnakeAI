@@ -40,7 +40,7 @@ colors = {
 }
 
 speeds = [500, 100, 1, 0]
-speedSetting = speeds[2]
+speedSetting = speeds[3]
 held = ''
 player = False
 holdUsed = False
@@ -83,7 +83,7 @@ def startGame():
         #Get AI's best move
         doBestMove(getNeuralInput())
 
-        dt = clock.tick(60)
+        dt = clock.tick(300)
         gameTime += dt
         ticker += dt
         if(ticker >= speedSetting):
@@ -130,6 +130,12 @@ def showDebug(dt, gameTime):
     yOffset = showLabel(round(gameTime/1000, 2),'Game Time: ', xOffset, yOffset)
     yOffset = showLabel(suisei.generation, 'Current Generation: ', xOffset, yOffset)
     yOffset = showLabel(suisei.currentNnet, 'Current Nnet: ', xOffset, yOffset)
+
+    xOffset -= 10
+    yOffset += 650
+    yOffset = showLabel(suisei.highscore, 'Highscore (This Gen):', xOffset, yOffset)
+    yOffset = showLabel(suisei.highestScore, 'Highest Score So Far:', xOffset, yOffset)
+    yOffset = showLabel(suisei.highestGen, 'Best Gen So Far:', xOffset, yOffset)
 
 def showScore():
     font = pygame.font.SysFont("Sans Serif", 80)

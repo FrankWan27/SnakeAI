@@ -73,6 +73,9 @@ class Nnets:
 	nnets = []
 	currentNnet = 0
 	numParents = 10
+	highscore = -1
+	highestScore = -1
+	highestGen = -1
 
 
 	def createPop(self):
@@ -89,6 +92,11 @@ class Nnets:
 		
 	def setFitness(self, score):
 		self.nnets[self.currentNnet].fitness = score
+		if score > self.highscore:
+			self.highscore = score
+			if self.highscore > self.highestScore:
+				self.highestScore = score
+				self.highestGen = self.generation
 
 	def evolve(self):
 		#get top 10 performers
