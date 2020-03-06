@@ -92,8 +92,7 @@ def startGame():
 
     while runloop:        
         #Break loop if we quit
-        runLoop = handleInput()
-
+        runloop = handleInput()
         #Get AI's best move
         if not player:
             doBestMove(getNeuralInput())
@@ -118,6 +117,9 @@ def startGame():
         showGrid()
         
         pygame.display.update()
+
+    pygame.display.quit()
+    pygame.quit()
 
 
 
@@ -211,8 +213,6 @@ def createShape(shape):
 def handleInput():
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.display.quit()
-                pygame.quit()
                 return False
             elif event.type == pygame.KEYDOWN and player:
                 if event.key == pygame.K_LEFT:
@@ -231,6 +231,7 @@ def handleInput():
                     fastDrop()
                 if event.key == pygame.K_LSHIFT:
                     hold()
+    return True
 
 
 #Adds currentShape to the grid
