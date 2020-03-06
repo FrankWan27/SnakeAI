@@ -68,14 +68,25 @@ class Nnet:
 
 
 class Nnets:
+	#Constants
 	popSize = 50
+	numParents = 10
+
+	#Global vars
 	generation = 0
 	nnets = []
 	currentNnet = 0
-	numParents = 10
+	
+	#Trackers
 	highscore = -1
 	highestScore = -1
 	highestGen = -1
+	genAvg = -1
+	genTotal = 0
+	deltaAvg = 0
+	pastAvg = 0
+
+
 
 
 	def createPop(self):
@@ -92,11 +103,18 @@ class Nnets:
 		
 	def setFitness(self, score):
 		self.nnets[self.currentNnet].fitness = score
+		
+		#update highscores
 		if score > self.highscore:
 			self.highscore = score
 			if self.highscore > self.highestScore:
 				self.highestScore = score
 				self.highestGen = self.generation
+
+		#update averages
+		self.genTotal += score
+		self.genAvg = self.genTotal / (self.currentNnet + 1) 
+		self.deltaAvg = self.genAvg - self.pastAvg
 
 	def evolve(self):
 		#get top 10 performers
@@ -115,6 +133,8 @@ class Nnets:
 		self.generation += 1
 		self.currentNnet = 0
 		self.highscore = 0
+		self.pastAvg = self.genAvg
+		self.genTotal = 0
 		self.nnets = newNnets
 
 	def makeChild(self, mom, dad):

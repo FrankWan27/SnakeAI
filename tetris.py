@@ -126,16 +126,18 @@ def showLabel(data, text, x, y):
 
 def showDebug(dt, gameTime):
     xOffset = 10
-    yOffset = 10
+    yOffset = 2
     yOffset = showLabel(round(1000/dt, 2), 'FPS: ', xOffset, yOffset)
-    yOffset = showLabel(round(gameTime/1000, 2),'Game Time: ', xOffset, yOffset)
+    #yOffset = showLabel(round(gameTime/1000, 2),'Game Time: ', xOffset, yOffset)
     yOffset = showLabel(suisei.generation, 'Current Generation: ', xOffset, yOffset)
     yOffset = showLabel(suisei.currentNnet, 'Current Nnet: ', xOffset, yOffset)
+    yOffset = showLabel(suisei.highestGen, 'Best Gen So Far: ', xOffset, yOffset)
 
-    yOffset += 640
-    yOffset = showLabel(suisei.highscore, 'Highscore (This Gen):', xOffset, yOffset)
-    yOffset = showLabel(suisei.highestScore, 'Highest Score So Far:', xOffset, yOffset)
-    yOffset = showLabel(suisei.highestGen, 'Best Gen So Far:', xOffset, yOffset)
+    yOffset += 628
+    yOffset = showLabel(int(suisei.genAvg), 'Current Gen Average: ', xOffset, yOffset)
+    yOffset = showLabel(int(suisei.deltaAvg), 'Change From Last Gen: ', xOffset, yOffset)
+    yOffset = showLabel(suisei.highscore, 'Highscore (This Gen): ', xOffset, yOffset)
+    yOffset = showLabel(suisei.highestScore, 'Highest Score So Far: ', xOffset, yOffset)
 
 def showScore():
     font = pygame.font.Font("fonts/abel.ttf", 80)
@@ -513,9 +515,7 @@ def clearRows():
     grid = np.hstack((tempRows, grid))
 
 #Current player or Nnet lost
-def handleLoss():
-    print('U Lost')
-    
+def handleLoss():    
     #update fitness of current Nnet
     suisei.setFitness(score)
     suisei.moveToNextNnet()
