@@ -4,21 +4,22 @@ import pygame
 import numpy as np
 import random
 from shape import Shape
+from nnet import Nnets
 #setup global vars
 gameDisplay = ''
 grid = np.zeros((10, 20))
 
 #official shape and orientation
 #https://tetris.wiki/Super_Rotation_System
-#changed to be row based
+#changed to be row based and 4x4
 shapes = {
     'I':[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
-    'J':[[2, 2, 0], [0, 2, 0], [0, 2 ,0]],
-    'L':[[0, 3, 0], [0, 3, 0], [3, 3, 0]],
-    'O':[[4, 4], [4, 4]],
-    'S':[[0, 5, 0], [5, 5, 0], [5, 0, 0]],
-    'T':[[0, 6, 0], [6, 6, 0], [0, 6, 0]],
-    'Z':[[7, 0, 0], [7, 7, 0], [0, 7, 0]]
+    'J':[[2, 2, 0, 0], [0, 2, 0, 0], [0, 2 ,0, 0], [0, 0, 0, 0]],
+    'L':[[0, 3, 0, 0], [0, 3, 0, 0], [3, 3, 0, 0], [0, 0, 0, 0]],
+    'O':[[0, 0, 0, 0], [0, 4, 4, 0], [0, 4, 4, 0], [0, 0, 0, 0]],
+    'S':[[0, 5, 0, 0], [5, 5, 0, 0], [5, 0, 0, 0], [0, 0, 0, 0]],
+    'T':[[0, 6, 0, 0], [6, 6, 0, 0], [0, 6, 0, 0], [0, 0, 0, 0]],
+    'Z':[[7, 0, 0, 0], [7, 7, 0, 0], [0, 7, 0, 0], [0, 0, 0, 0]],
 }
 
 colors = {
@@ -39,20 +40,24 @@ colors = {
 }
 
 speeds = [500, 100, 1, 0]
-speedSetting = speeds[0]
+speedSetting = speeds[2]
 held = ''
+player = False
 holdUsed = False
 currentShape = Shape()
 upcoming = []
 ticker = 0
-
 score = 0
+forceMove = 0
+
+suisei = Nnets()
 
 #Core game loop
 def startGame():
     global gameDisplay
     global ticker
     global currentShape
+    global forceMove
     pygame.init()
     gameDisplay = pygame.display.set_mode((600, 800))
     pygame.display.set_caption('Tetris AI')
@@ -68,22 +73,31 @@ def startGame():
     dt = 0
     gameTime = 0
     ticker = 0
-    
+
+    suisei.createPop()
+
     while runloop:        
         #Break loop if we quit
         runLoop = handleInput()
+
+        #Get AI's best move
+        doBestMove(getNeuralInput())
 
         dt = clock.tick(60)
         gameTime += dt
         ticker += dt
         if(ticker >= speedSetting):
+            forceMove += 1
             moveDown()
             ticker = 0
 
+        if forceMove >= 60:
+            fastDrop()
+
         #Draw everything to screen
         gameDisplay.blit(bg, (0, 0))
-        #showFPS(dt, gameTime)
-        #showScore()
+        showDebug(dt, gameTime)
+        showScore()
         showNext()
         showHeld()
         showGrid()
@@ -107,10 +121,15 @@ def showLabel(data, text, x, y):
     font = pygame.font.SysFont("monospace", 20)
     label = font.render('{} {}'.format(text, data), 1, (40,40,250))
     gameDisplay.blit(label, (x, y))
+    return y + 20
 
-def showFPS(dt, gameTime):
-    showLabel(round(1000/dt, 2), 'FPS: ', 10, 10, )
-    showLabel(round(gameTime/1000, 2),'Game Time: ', 10, 30)
+def showDebug(dt, gameTime):
+    xOffset = 10
+    yOffset = 10
+    yOffset = showLabel(round(1000/dt, 2), 'FPS: ', xOffset, yOffset)
+    yOffset = showLabel(round(gameTime/1000, 2),'Game Time: ', xOffset, yOffset)
+    yOffset = showLabel(suisei.generation, 'Current Generation: ', xOffset, yOffset)
+    yOffset = showLabel(suisei.currentNnet, 'Current Nnet: ', xOffset, yOffset)
 
 def showScore():
     font = pygame.font.SysFont("Sans Serif", 80)
@@ -161,13 +180,9 @@ def createShape(shape):
             if shapes[shape][x][y] == 1:
                 rectList.append(pygame.Rect(x * 22, y * 22, 22, 22))
             elif shapes[shape][x][y] == 4:
-                rectList.append(pygame.Rect(14 + x * 30, y * 30, 30, 30))
+                rectList.append(pygame.Rect(14 + x * 30 - 30, y * 30 - 30, 30, 30))
             elif shapes[shape][x][y] != 0:
                 rectList.append(pygame.Rect(x * 30, y * 30, 30, 30))
-    return rectList
-
-
-
     return rectList
 
 #Handle keyboard input
@@ -177,7 +192,7 @@ def handleInput():
                 pygame.display.quit()
                 pygame.quit()
                 return False
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN and not player:
                 if event.key == pygame.K_LEFT:
                     moveLeft()
                 if event.key == pygame.K_RIGHT:
@@ -231,9 +246,9 @@ def moveRight():
 def rotateLeft():
     global currentShape
     removeShape()
-    currentShape.shape = rotateShape(currentShape.shape, 3)
+    currentShape.shape = rotateShape(currentShape, 3)
     if checkWallKick(currentShape, -1):
-        currentShape.shape = rotateShape(currentShape.shape, 1)
+        currentShape.shape = rotateShape(currentShape, 1)
         currentShape.rotation += 1
     currentShape.rotation -= 1
     addShape()
@@ -242,11 +257,11 @@ def rotateLeft():
 def rotateRight():
     global currentShape
     removeShape()
-    currentShape.shape = rotateShape(currentShape.shape, 1)
+    currentShape.shape = rotateShape(currentShape, 1)
 
 
     if checkWallKick(currentShape, 1):
-        currentShape.shape = rotateShape(currentShape.shape, 3)
+        currentShape.shape = rotateShape(currentShape, 3)
         currentShape.rotation -= 1
     currentShape.rotation += 1
     addShape()
@@ -322,15 +337,28 @@ def checkWallKick(currentShape, direction):
 
 
 
-def rotateShape(shape, rotations):
+def rotateShape(currentShape, rotations):
+
+    shape = currentShape.shape
+
+    if not (currentShape.letter == 'I' or currentShape.letter == 'O'):
+        shape = currentShape.shape[0:3][0:3]
+
     for i in range(rotations):
-        for x in range(0, int(len(shape)/2)): 
-            for y in range(x, len(shape)-x-1): 
+        for x in range(0, int(len(shape) / 2)): 
+            for y in range(x, len(shape) - x - 1): 
                 temp = shape[x][y] 
                 shape[x][y] = shape[y][len(shape) - x - 1] 
                 shape[y][len(shape) - x - 1] = shape[len(shape) - x - 1][len(shape) - y - 1] 
                 shape[len(shape) - x - 1][len(shape) - y - 1] = shape[len(shape) - y - 1][x] 
                 shape[len(shape) - y - 1][x] = temp 
+
+    if not (currentShape.letter == 'I' or currentShape.letter == 'O'):
+        zeros = [[0 for i in range(4)] for j in range(4)]
+        for i in range(3):
+            for j in range(3):
+                zeros[i][j] = shape[i][j]
+        shape = zeros
     return shape
 
 #Move currentShape right 1 tile
@@ -346,8 +374,7 @@ def moveDown():
         currentShape = getNextShape()
         #check if we lost
         if checkCollision(currentShape):
-            print('U Lost')
-            resetGame()
+            handleLoss()
 
     score += 1
     addShape()
@@ -392,8 +419,7 @@ def fastDrop():
     currentShape = getNextShape()
     #check if we lost
     if checkCollision(currentShape):
-        print('U Lost')
-        resetGame()
+        handleLoss()
 
     addShape()
 
@@ -439,7 +465,9 @@ def clearRows():
     global grid
     global score
     global holdUsed
+    global forceMove
 
+    forceMove = 0
     holdUsed = False
     #List of rows that are full
     rows = []
@@ -479,7 +507,76 @@ def clearRows():
     grid = np.hstack((tempRows, grid))
 
 
+def handleLoss():
+    print('U Lost')
+    
+    #update fitness of current Nnet
+    suisei.setFitness(score)
+    suisei.moveToNextNnet()
+    resetGame()
 
+def getNeuralInput():
+    #Add grid
+    inputs = grid.flatten()
+
+    #Add current shape (rotation information is saved in shape)
+    inputs = np.append(inputs, np.array(currentShape.shape).flatten())
+
+    #Add current x and y
+    inputs = np.append(inputs, currentShape.x)
+    inputs = np.append(inputs, currentShape.y)
+
+    #Add next 4 shapes
+    #Possibly just append the letter as an optimization same as held
+    for shape in upcoming:
+        inputs = np.append(inputs, np.array(shapes[shape]).flatten())
+
+    #Add held shape
+    if held == '':
+        inputs = np.append(inputs, np.zeros(16))
+    else:
+        inputs = np.append(inputs,np.array(shapes[held]).flatten())
+
+    return inputs
+
+
+def doBestMove(inputs):
+    # 0 : moveLeft
+    # 1 : moveRight
+    # 2 : rotateLeft
+    # 3 : rotateRight
+    # 4 : fastDrop
+    # 5 : slowDrop
+    # 6 : holdBlock
+    # 7 : doNothing
+
+    bestMove = suisei.getBestMove(inputs)
+    if bestMove == 0:
+        #print('Move Left')
+        moveLeft()
+    elif bestMove == 1:
+        #print('Move Right')
+        moveRight()
+    elif bestMove == 2:
+        #print('Rotate Left')
+        rotateLeft()
+    elif bestMove == 3:
+        #print('Rotate Right')
+        rotateRight()
+    elif bestMove == 4:
+        #print('Fast Drop')
+        fastDrop()
+    elif bestMove == 5:
+        #print('Slow Drop')
+        moveDown()
+    elif bestMove == 6:
+        #print('Hold Block')
+        hold()
+    else:
+        return
+        #print('Doing Nothing')
+
+        
 
 
 
