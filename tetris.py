@@ -3,8 +3,22 @@
 import pygame
 import numpy as np
 import random
+import os
+import sys
 from shape import Shape
 from nnet import Nnets
+
+# PyInstaller adds this attribute
+if getattr(sys, 'frozen', False):
+    # Running in a bundle
+    CurrentPath = sys._MEIPASS
+else:
+    # Running in normal Python environment
+    CurrentPath = os.path.dirname(__file__)
+
+
+
+
 #setup global vars
 gameDisplay = ''
 grid = np.zeros((10, 20))
@@ -61,7 +75,7 @@ def startGame():
     pygame.init()
     gameDisplay = pygame.display.set_mode((600, 800))
     pygame.display.set_caption('Tetris AI')
-    bg = pygame.image.load('img/BG.png')
+    bg = pygame.image.load(os.path.join(CurrentPath, 'img/BG.png'))
     resetGame()
 
     currentShape = getNextShape()
@@ -119,7 +133,7 @@ def resetGame():
     score = 0
 
 def showLabel(data, text, x, y):
-    font = pygame.font.Font("fonts/abel.ttf", 20)
+    font = pygame.font.Font(os.path.join(CurrentPath, 'fonts/abel.ttf'), 20)
     label = font.render('{} {}'.format(text, data), 1, (40,40,250))
     gameDisplay.blit(label, (x, y))
     return y + 20
@@ -140,7 +154,7 @@ def showDebug(dt, gameTime):
     yOffset = showLabel(suisei.highestScore, 'Highest Score So Far: ', xOffset, yOffset)
 
 def showScore():
-    font = pygame.font.Font("fonts/abel.ttf", 80)
+    font = pygame.font.Font(os.path.join(CurrentPath, 'fonts/abel.ttf'), 80)
     label = font.render('{}'.format(score), 1, (0, 0, 0))
     offset = font.size('{}'.format(score))
     gameDisplay.blit(label, (390 - offset[0], 707))
