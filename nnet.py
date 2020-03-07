@@ -39,10 +39,7 @@ class Nnet:
 
     #Return outputs given an input 
     def getOutputs(self, inputList):
-
-        #inputsList = list[298]
-
-        #inputs = ndarray[298x1]
+        
         inputs = np.array(inputList, ndmin=2).T
 
         hiddenValues = scipy.special.expit(np.dot(self.wInputToHidden, inputs))

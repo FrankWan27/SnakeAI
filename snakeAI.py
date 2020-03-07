@@ -67,6 +67,9 @@ def startGame():
         checkEat(snakePlayer)
         updateGrid(fruit, 2)
 
+        if(snakePlayer.health < 0):
+            handleLoss()
+
 
         #Draw everything to screen
         gameDisplay.fill(pygame.Color('gray'))
@@ -225,6 +228,7 @@ def spawnFruit():
 def checkEat(snakePlayer):
     if snakePlayer.getHead() == fruit[0]:
         snakePlayer.body.append(fruit[0])
+        snakePlayer.health = 100
         spawnFruit()
 
 
@@ -243,7 +247,7 @@ def getNeuralInput(snakePlayer):
     inputs.append(WIDTH - head[1] - 1)
 
     #get distance to self
-    distToSelf = getDistanceToSelf(head)
+    distToSelf = getDistanceToObj(head, 1)
 
 
     inputs.append(distToSelf[0])
@@ -251,11 +255,18 @@ def getNeuralInput(snakePlayer):
     inputs.append(distToSelf[2])
     inputs.append(distToSelf[3])
 
-    #
-    inputs.append(snakePlayer.direction.value[0])
-    inputs.append(snakePlayer.direction.value[1])
-    inputs.append(fruit[0][0])
-    inputs.append(fruit[0][1])
+    #get distance to fruit
+    distToFruit = getDistanceToObj(head, 2)
+
+    inputs.append(distToFruit[0])
+    inputs.append(distToFruit[1])
+    inputs.append(distToFruit[2])
+    inputs.append(distToFruit[3])
+
+
+    #inputs.append(snakePlayer.direction.value[0])
+    #inputs.append(snakePlayer.direction.value[1])
+
 
     return inputs
 
@@ -268,26 +279,28 @@ def doBestMove(inputs, snakePlayer):
 
     bestMove = snek.getBestMove(inputs)
 
+
     if bestMove == 0:
         #print('Move Left')
-        turnLeft(snakePlayer)
+        moveLeft(snakePlayer)
     elif bestMove == 1:
         #print('Move Right')
-        turnRight(snakePlayer)
+        moveRight(snakePlayer)
+    elif bestMove == 2:
+        moveUp(snakePlayer)
     else:
-        return
-        #print('Doing Nothing')
+        moveDown(snakePlayer)
 
-def getDistanceToSelf(head):
-    left = -1
-    right = -1
-    up = -1
-    down = -1
+def getDistanceToObj(head, num):
+    left = WIDTH * HEIGHT
+    right = WIDTH * HEIGHT
+    up = WIDTH * HEIGHT
+    down = WIDTH * HEIGHT
 
     count = 1
     i = head[0] - 1
     while i >= 0:
-        if grid[i][head[1]] == 1:
+        if grid[i][head[1]] == num:
             left = count
             break
         else:
@@ -297,7 +310,7 @@ def getDistanceToSelf(head):
     count = 1
     i = head[0] + 1
     while i < WIDTH:
-        if grid[i][head[1]] == 1:
+        if grid[i][head[1]] == num:
             right = count
             break
         else:
@@ -307,7 +320,7 @@ def getDistanceToSelf(head):
     count = 1
     i = head[1] - 1
     while i >= 0:
-        if grid[head[0]][i] == 1:
+        if grid[head[0]][i] == num:
             up = count
             break
         else:
@@ -317,7 +330,7 @@ def getDistanceToSelf(head):
     count = 1
     i = head[1] + 1
     while i < HEIGHT:
-        if grid[head[0]][i] == 1:
+        if grid[head[0]][i] == num:
             down = count
             break
         else:

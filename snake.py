@@ -6,6 +6,7 @@ class Snake:
     direction = Dir.RIGHT
     length = 1
     lifetime = 0
+    health = 100
 
     def __init__(self, xPos=0, yPos=0, direction=Dir.RIGHT):
         self.body = []
@@ -27,6 +28,7 @@ class Snake:
             return False
         else:
             self.lifetime += 1
+            self.health -= 1
             self.body.append(head)
             return True
 
