@@ -1,7 +1,9 @@
 import random
-import tetris as Tetris
+import tetrisAI as TetrisAI
+import snakeAI as SnakeAI
 
 
-random.seed(a = 'Suisei')
+random.seed(0)
    
-Tetris.startGame()
+#TetrisAI.startGame()
+SnakeAI.startGame()
