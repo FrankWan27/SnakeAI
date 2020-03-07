@@ -1,4 +1,8 @@
 from enum import Enum
+import numpy as np
+
+WIDTH = 10
+HEIGHT = 10
 
 shapes = {
     'I':[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
@@ -36,7 +40,7 @@ class Dir(Enum):
 #Stores input hidden and out nums
 class Species(Enum):
 	TETRIS = (223, 20, 8)
-	SNAKE = (104, 20, 4)
+	SNAKE = (WIDTH * HEIGHT + 4, 20, 4)
 
 #Converts a 2D Array to a 1D list
 def arrayToList(arr, result):
@@ -54,3 +58,31 @@ def arrayToOnes(arr, result):
             else:
                 result.append(0)
     return result
+
+#Simply picks a value between the two parents for every weight v
+def mixArrays(a1, a2):
+    rows = a1.shape[0]
+    cols = a1.shape[1]
+    
+    output = np.zeros((rows, cols))
+
+    for x in range(rows):
+        for y in range(cols):
+                if a1[x][y] < a2[x][y]:
+                    output[x][y] = np.random.uniform(a1[x][y], a2[x][y])
+                else:
+                    output[x][y] = np.random.uniform(a2[x][y], a1[x][y])
+
+    return output
+
+#Mutates an array randomly by resetting [mutateChance]% of the weights.
+def mutateArray(a, mutateChance):
+    rows = a.shape[0]
+    cols = a.shape[1]
+
+    for x in range(rows):
+        for y in range(cols):            
+            if np.random.random() < mutateChance:
+                a[x][y] = np.random.random_sample() - 0.5
+
+    return a

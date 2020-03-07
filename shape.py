@@ -1,4 +1,4 @@
-import defs
+from defs import *
 import copy 
 class Shape:
     x = 0
@@ -9,7 +9,7 @@ class Shape:
 
     def __init__(self, shapeLetter='S'):
         self.letter = shapeLetter
-        self.shape = copy.deepcopy(defs.shapes[shapeLetter])
+        self.shape = copy.deepcopy(shapes[shapeLetter])
 
 
 

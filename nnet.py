@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.special
-import defs
+from defs import *
+import copy 
 
 
 
@@ -28,7 +29,6 @@ class Nnet:
         self.numInputs = species.value[0]
         self.numHidden = species.value[1]
         self.numOutputs = species.value[2]
-        self.fitness = -1
 
         self.initWeights()
 
@@ -54,25 +54,12 @@ class Nnet:
         return np.argmax(self.getOutputs(inputList))
 
     def makeChild(self, mom, dad):
-        self.wInputToHidden = Nnet.mixArrays(mom.wInputToHidden, dad.wInputToHidden)
-        self.wHiddenToOutput = Nnet.mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput)
+        self.wInputToHidden = mixArrays(mom.wInputToHidden, dad.wInputToHidden)
+        self.wHiddenToOutput = mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput)
 
-
-    #Simply picks a value between the two parents for every weight v
-    def mixArrays(a1, a2):
-        rows = a1.shape[0]
-        cols = a1.shape[1]
-        
-        output = np.zeros((rows, cols))
-
-        for x in range(rows):
-            for y in range(cols):
-                    if a1[x][y] < a2[x][y]:
-                        output[x][y] = np.random.uniform(a1[x][y], a2[x][y])
-                    else:
-                        output[x][y] = np.random.uniform(a2[x][y], a1[x][y])
-
-        return output
+    def makeClone(self, mom):
+        self.wInputToHidden = mutateArray(copy.deepcopy(mom.wInputToHidden), 0.2)
+        self.wHiddenToOutput = mutateArray(copy.deepcopy(mom.wHiddenToOutput), 0.2)
 
 
 class Nnets:
@@ -84,7 +71,7 @@ class Nnets:
     generation = 0
     nnets = []
     currentNnet = 0
-    species = defs.Species.TETRIS
+    species = Species.TETRIS
 
     #Trackers
     highscore = -1
@@ -135,23 +122,34 @@ class Nnets:
             bestNnets.append(self.popBestNnet())
 
         #randomly create a full population of children
-        newNnets = []
-        for i in range(self.popSize):
+        #newNnets = []
+        #for i in range(self.popSize):
+        #    mom = bestNnets[np.random.randint(self.numParents)]
+        #    dad = bestNnets[np.random.randint(self.numParents)]
+        #    newNnets.append(self.makeChild(mom, dad))
+
+        #Rest of population will be modified versions of top 10
+        for i in range(self.popSize - self.numParents):
             mom = bestNnets[np.random.randint(self.numParents)]
-            dad = bestNnets[np.random.randint(self.numParents)]
-            newNnets.append(self.makeChild(mom, dad))
+            bestNnets.append(self.makeClone(mom))
 
         self.generation += 1
         self.currentNnet = 0
         self.highscore = 0
         self.pastAvg = self.genAvg
         self.genTotal = 0
-        self.nnets = newNnets
+        self.nnets = bestNnets
 
     def makeChild(self, mom, dad):
         child = Nnet(self.species)
         child.makeChild(mom, dad)
         return child
+
+    def makeClone(self, mom):
+        child = Nnet(self.species)
+        child.makeClone(mom)
+        return child
+
 
 
     def popBestNnet(self):

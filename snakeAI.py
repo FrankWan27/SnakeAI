@@ -6,7 +6,7 @@ import random
 import sys
 import os
 from nnet import Nnets
-import defs
+from defs import *
 from snake import Snake
 
 # PyInstaller adds this attribute
@@ -19,8 +19,7 @@ else:
 
 #setup constants
 player = False
-WIDTH = 10
-HEIGHT = 10
+
 
 #setup global vars
 gameDisplay = ''
@@ -29,7 +28,7 @@ fruit = [(9, 9)]
 
 snakePlayer = Snake()
 
-snek = Nnets(defs.Species.SNAKE)
+snek = Nnets(Species.SNAKE)
 
 #Core game loop
 def startGame():
@@ -85,6 +84,7 @@ def resetGame():
     global score
     global snakePlayer
     grid = np.zeros((WIDTH, HEIGHT))
+    spawnFruit()
     score = 0
     snakePlayer = Snake()
 
@@ -118,14 +118,16 @@ def showScore():
 def showGrid():
     xOffset = 150
     yOffset = 150
+    xSize = 300 / WIDTH
+    ySize = 300 / HEIGHT
     pygame.draw.rect(gameDisplay, pygame.Color('black'), (xOffset - 10, yOffset - 10, 320, 320))
 
     for x in range(WIDTH):
         for y in range(HEIGHT):
             if(grid[x][y] == 1):
-                pygame.draw.rect(gameDisplay, pygame.Color('white'), (xOffset + x * 30, yOffset + y * 30, 29, 29))
+                pygame.draw.rect(gameDisplay, pygame.Color('white'), (xOffset + x * xSize, yOffset + y * ySize, xSize - 1, ySize - 1))
             if(grid[x][y] == 2):
-                pygame.draw.rect(gameDisplay, pygame.Color('purple'), (xOffset + x * 30, yOffset + y * 30, 29, 29))
+                pygame.draw.rect(gameDisplay, pygame.Color('purple'), (xOffset + x * xSize, yOffset + y * ySize, xSize - 1, ySize - 1))
 
 #Handle keyboard input
 def handleInput():
@@ -141,7 +143,12 @@ def handleInput():
                     moveUp(snakePlayer)
                 if event.key == pygame.K_DOWN:
                     moveDown(snakePlayer)
-
+            else:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    #Manual Kill Current NNet
+                    snek.setFitness(-1)
+                    snek.moveToNextNnet()
+                    resetGame()
     return True
 
 #Current player or Nnet lost
@@ -152,23 +159,23 @@ def handleLoss():
     resetGame()
 
 def moveLeft(s):
-    if s.direction is not defs.Dir.RIGHT:
-        s.direction = defs.Dir.LEFT
+    if s.direction is not Dir.RIGHT:
+        s.direction = Dir.LEFT
 
     
 def moveRight(s):
-    if s.direction is not defs.Dir.LEFT:
-        s.direction = defs.Dir.RIGHT
+    if s.direction is not Dir.LEFT:
+        s.direction = Dir.RIGHT
 
     
 def moveUp(s):
-    if s.direction is not defs.Dir.DOWN:
-        s.direction = defs.Dir.UP
+    if s.direction is not Dir.DOWN:
+        s.direction = Dir.UP
 
     
 def moveDown(s):
-    if s.direction is not defs.Dir.UP:
-        s.direction = defs.Dir.DOWN
+    if s.direction is not Dir.UP:
+        s.direction = Dir.DOWN
 
 def clearGrid():
     global grid
@@ -205,7 +212,7 @@ def getNeuralInput(snakePlayer):
     global grid
     inputs = []
     #Add grid
-    defs.arrayToList(grid, inputs)
+    arrayToList(grid, inputs)
 
     #Add current x and y and direction
     head = snakePlayer.getHead()

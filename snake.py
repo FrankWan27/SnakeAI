@@ -1,13 +1,13 @@
-import defs
+from defs import *
 
 class Snake:
 
     body = []
-    direction = defs.Dir.RIGHT
+    direction = Dir.RIGHT
     length = 1
     lifetime = 0
 
-    def __init__(self, xPos=0, yPos=0, direction=defs.Dir.RIGHT):
+    def __init__(self, xPos=0, yPos=0, direction=Dir.RIGHT):
         self.body = []
         self.lifetime = 0
         self.body.append((xPos, yPos))
@@ -40,7 +40,7 @@ class Snake:
     def checkCollision(self, head):
 
         #hard coded boundaries
-        if head[0] < 0 or head[0] >= 10 or head[1] < 0 or head[1] >= 10:
+        if head[0] < 0 or head[0] >= WIDTH or head[1] < 0 or head[1] >= HEIGHT:
             return True
 
         for bodyPart in self.body:

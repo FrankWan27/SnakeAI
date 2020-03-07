@@ -7,7 +7,7 @@ import os
 import sys
 from shape import Shape
 from nnet import Nnets
-import defs
+from defs import *
 
 # PyInstaller adds this attribute
 if getattr(sys, 'frozen', False):
@@ -39,7 +39,7 @@ ticker = 0
 score = 0
 forceMove = 0
 
-suisei = Nnets(defs.Species.TETRIS)
+suisei = Nnets(Species.TETRIS)
 
 #Core game loop
 def startGame():
@@ -143,7 +143,7 @@ def showGrid():
         for y in range(grid.shape[1]):
             if(grid[x][y] != 0):
                 pygame.draw.rect(gameDisplay, pygame.Color('white'), (xOffset + x * 30, yOffset + y * 30, 30, 30))
-                pygame.draw.rect(gameDisplay, pygame.Color(defs.colors[grid[x][y]]), (1 + xOffset + x * 30, 1 + yOffset + y * 30, 28, 28))
+                pygame.draw.rect(gameDisplay, pygame.Color(colors[grid[x][y]]), (1 + xOffset + x * 30, 1 + yOffset + y * 30, 28, 28))
 
 #Show next 4 blocks
 def showNext():
@@ -159,7 +159,7 @@ def showNext():
 
         for rect in nextShape:
             pygame.draw.rect(gameDisplay, pygame.Color('white'), rect.move(xOffset, yBase +  yOffset * i))
-            pygame.draw.rect(gameDisplay, pygame.Color(defs.colors[upcoming[i]]), (1 + xOffset + rect.x, 1 + yBase + yOffset * i + rect.y, rect.width - 2, rect.height - 2))   
+            pygame.draw.rect(gameDisplay, pygame.Color(colors[upcoming[i]]), (1 + xOffset + rect.x, 1 + yBase + yOffset * i + rect.y, rect.width - 2, rect.height - 2))   
 
 #Show held block
 def showHeld():
@@ -170,17 +170,17 @@ def showHeld():
         nextShape = createShape(held)
         for rect in nextShape:
             pygame.draw.rect(gameDisplay, pygame.Color('white'), rect.move(xOffset, yOffset))
-            pygame.draw.rect(gameDisplay, pygame.Color(defs.colors[held]), (1 + xOffset + rect.x, 1 + yOffset + rect.y, rect.width - 2, rect.height - 2))   
+            pygame.draw.rect(gameDisplay, pygame.Color(colors[held]), (1 + xOffset + rect.x, 1 + yOffset + rect.y, rect.width - 2, rect.height - 2))   
 
 def createShape(shape):
     rectList = []
-    for x in range(len(defs.shapes[shape])):
-        for y in range(len(defs.shapes[shape][0])):
-            if defs.shapes[shape][x][y] == 1:
+    for x in range(len(shapes[shape])):
+        for y in range(len(shapes[shape][0])):
+            if shapes[shape][x][y] == 1:
                 rectList.append(pygame.Rect(x * 22, y * 22, 22, 22))
-            elif defs.shapes[shape][x][y] == 4:
+            elif shapes[shape][x][y] == 4:
                 rectList.append(pygame.Rect(14 + x * 30 - 30, y * 30 - 30, 30, 30))
-            elif defs.shapes[shape][x][y] != 0:
+            elif shapes[shape][x][y] != 0:
                 rectList.append(pygame.Rect(x * 30, y * 30, 30, 30))
     return rectList
 
@@ -449,7 +449,7 @@ def getNextShape():
 
 #Pick a random shape
 def randomShape():
-    return random.choice(list(defs.shapes.keys()))
+    return random.choice(list(shapes.keys()))
 
 #Generate 4 upcoming blocks
 def generateUpcoming():
@@ -516,10 +516,10 @@ def handleLoss():
 def getNeuralInput():
     inputs = []
     #Add grid
-    defs.arrayToOnes(grid, inputs)
+    arrayToOnes(grid, inputs)
 
     #Add current shape (rotation information is saved in shape)
-    defs.arrayToOnes(currentShape.shape, inputs)
+    arrayToOnes(currentShape.shape, inputs)
 
     #Add current x and y
     inputs.append(currentShape.x)
