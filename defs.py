@@ -1,8 +1,8 @@
 from enum import Enum
 import numpy as np
 
-WIDTH = 10
-HEIGHT = 10
+WIDTH = 20
+HEIGHT = 20
 
 shapes = {
     'I':[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],

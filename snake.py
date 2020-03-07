@@ -8,7 +8,7 @@ class Snake:
     lifetime = 0
     health = 100
 
-    def __init__(self, xPos=0, yPos=0, direction=Dir.RIGHT):
+    def __init__(self, xPos=int(HEIGHT/2), yPos=int(WIDTH/2), direction=Dir.RIGHT):
         self.body = []
         self.lifetime = 0
         self.body.append((xPos, yPos))

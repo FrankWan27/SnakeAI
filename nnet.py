@@ -39,7 +39,7 @@ class Nnet:
 
     #Return outputs given an input 
     def getOutputs(self, inputList):
-        
+
         inputs = np.array(inputList, ndmin=2).T
 
         hiddenValues = scipy.special.expit(np.dot(self.wInputToHidden, inputs))
@@ -62,7 +62,7 @@ class Nnet:
 class Nnets:
     #Constants
     popSize = 50
-    numParents = 10
+    numParents = 2
 
     #Global vars
     generation = 0
@@ -117,6 +117,8 @@ class Nnets:
 
         for i in range(self.numParents):
             bestNnets.append(self.popBestNnet())
+
+        print(bestNnets[0].fitness)
 
         #randomly create a full population of children
         #newNnets = []
