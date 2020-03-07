@@ -40,7 +40,7 @@ class Dir(Enum):
 #Stores input hidden and out nums
 class Species(Enum):
 	TETRIS = (223, 20, 8)
-	SNAKE = (WIDTH * HEIGHT + 4, 20, 4)
+	SNAKE = (12, 12, 3)
 
 #Converts a 2D Array to a 1D list
 def arrayToList(arr, result):

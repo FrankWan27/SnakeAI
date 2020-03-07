@@ -159,23 +159,43 @@ def handleLoss():
     resetGame()
 
 def moveLeft(s):
-    if s.direction is not Dir.RIGHT:
+    if s.direction != Dir.RIGHT:
         s.direction = Dir.LEFT
 
     
 def moveRight(s):
-    if s.direction is not Dir.LEFT:
+    if s.direction != Dir.LEFT:
         s.direction = Dir.RIGHT
 
     
 def moveUp(s):
-    if s.direction is not Dir.DOWN:
+    if s.direction != Dir.DOWN:
         s.direction = Dir.UP
 
     
 def moveDown(s):
-    if s.direction is not Dir.UP:
+    if s.direction != Dir.UP:
         s.direction = Dir.DOWN
+
+def turnLeft(s):
+    if s.direction == Dir.UP:
+        s.direction = Dir.LEFT
+    if s.direction == Dir.LEFT:
+        s.direction = Dir.DOWN
+    if s.direction == Dir.DOWN:
+        s.direction = Dir.RIGHT
+    if s.direction == Dir.RIGHT:
+        s.direction = Dir.UP
+
+def turnRight(s):
+    if s.direction == Dir.UP:
+        s.direction = Dir.RIGHT
+    if s.direction == Dir.RIGHT:
+        s.direction = Dir.DOWN
+    if s.direction == Dir.DOWN:
+        s.direction = Dir.LEFT
+    if s.direction == Dir.LEFT:
+        s.direction = Dir.UP
 
 def clearGrid():
     global grid
@@ -211,15 +231,31 @@ def checkEat(snakePlayer):
 def getNeuralInput(snakePlayer):
     global grid
     inputs = []
-    #Add grid
-    arrayToList(grid, inputs)
-
-    #Add current x and y and direction
     head = snakePlayer.getHead()
-    inputs.append(head[0])
+
+    #get distance to walls left
+    inputs.append(head[0]) 
+    #top
     inputs.append(head[1])
+    #right
+    inputs.append(WIDTH - head[0] - 1)
+    #bot
+    inputs.append(WIDTH - head[1] - 1)
+
+    #get distance to self
+    distToSelf = getDistanceToSelf(head)
+
+
+    inputs.append(distToSelf[0])
+    inputs.append(distToSelf[1])
+    inputs.append(distToSelf[2])
+    inputs.append(distToSelf[3])
+
+    #
     inputs.append(snakePlayer.direction.value[0])
     inputs.append(snakePlayer.direction.value[1])
+    inputs.append(fruit[0][0])
+    inputs.append(fruit[0][1])
 
     return inputs
 
@@ -234,16 +270,59 @@ def doBestMove(inputs, snakePlayer):
 
     if bestMove == 0:
         #print('Move Left')
-        moveLeft(snakePlayer)
+        turnLeft(snakePlayer)
     elif bestMove == 1:
         #print('Move Right')
-        moveRight(snakePlayer)
-    elif bestMove == 2:
-        #print('Move Up')
-        moveUp(snakePlayer)
-    elif bestMove == 3:
-        #print('Move Down')
-        moveDown(snakePlayer)
+        turnRight(snakePlayer)
     else:
         return
         #print('Doing Nothing')
+
+def getDistanceToSelf(head):
+    left = -1
+    right = -1
+    up = -1
+    down = -1
+
+    count = 1
+    i = head[0] - 1
+    while i >= 0:
+        if grid[i][head[1]] == 1:
+            left = count
+            break
+        else:
+            count += 1
+        i -= 1
+    
+    count = 1
+    i = head[0] + 1
+    while i < WIDTH:
+        if grid[i][head[1]] == 1:
+            right = count
+            break
+        else:
+            count += 1
+        i += 1
+    
+    count = 1
+    i = head[1] - 1
+    while i >= 0:
+        if grid[head[0]][i] == 1:
+            up = count
+            break
+        else:
+            count += 1
+        i -= 1
+    
+    count = 1
+    i = head[1] + 1
+    while i < HEIGHT:
+        if grid[head[0]][i] == 1:
+            down = count
+            break
+        else:
+            count += 1
+        i += 1
+
+    return (left, right, up, down)
+    
