@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.special
 from defs import *
 import copy 
 
@@ -33,42 +32,52 @@ class Nnet:
         self.initWeights()
 
     #Randomly generates a uniformly distributed weights matrix
-    def initWeights(self, low = -0.5, high = 0.5):
-        self.wInputToHidden = np.random.uniform(-0.5, 0.5, size=(self.numHidden, self.numInputs))
-        self.wHiddenToOutput = np.random.uniform(-0.5, 0.5, size=(self.numOutputs, self.numHidden))
+    def initWeights(self, low = -5, high = 5):
+        self.wInputToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numInputs))
+        self.wHiddenToOutput = np.random.uniform(low, high, size=(self.numOutputs, self.numHidden))
+        #self.wInputToHidden = np.array([
+        #    [0.4, 0, 0, 0, -5, 0, 0, 0, 5, 0, 0, 0], 
+        #    [0, 0.3, 0, 0, 0, -5, 0, 0, 0, 5, 0, 0], 
+         #   [0, 0, 0.1, 0, 0, 0, -5, 0, 0, 0, 5, 0], 
+        #    [0, 0, -0.2, 0.5, 0, 0, 0, -5, 0, 0, 0, 5]
+         #   ])
+
 
     #Return outputs given an input 
     def getOutputs(self, inputList):
 
         inputs = np.array(inputList, ndmin=2).T
 
-        hiddenValues = scipy.special.expit(np.dot(self.wInputToHidden, inputs))
-        outputs = scipy.special.expit(np.dot(self.wHiddenToOutput, hiddenValues))
 
+        hiddenValues = sigmoid(np.dot(self.wInputToHidden, inputs))
+        np.set_printoptions(suppress=True)
+        #print(inputs)
+        #print(self.wInputToHidden)
+
+        outputs = sigmoid(np.dot(self.wHiddenToOutput, hiddenValues))
+        #print(outputs)
+        
         return outputs
 
     def getOptimalOutput(self, inputList):
-        return np.argmax(self.getOutputs(inputList))
+        output = self.getOutputs(inputList)
+        return np.random.choice(np.flatnonzero(np.isclose(output, output.max())))
+
 
     def makeChild(self, mom, dad):
-        self.wInputToHidden = mixArrays(mom.wInputToHidden, dad.wInputToHidden)
-        self.wHiddenToOutput = mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput)
+        self.wInputToHidden = mutateArray(mixArrays(mom.wInputToHidden, dad.wInputToHidden), MUTATION_RATE)
+        self.wHiddenToOutput = mutateArray(mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput), MUTATION_RATE)
+
 
     def makeClone(self, mom):
-        self.wInputToHidden = mutateArray(copy.deepcopy(mom.wInputToHidden), 0.2)
-        self.wHiddenToOutput = mutateArray(copy.deepcopy(mom.wHiddenToOutput), 0.2)
+        self.wInputToHidden = mutateArray(copy.deepcopy(mom.wInputToHidden), MUTATION_RATE)
+        self.wHiddenToOutput = mutateArray(copy.deepcopy(mom.wHiddenToOutput), MUTATION_RATE)
 
 
 class Nnets:
     #Constants
-    popSize = 50
-    numParents = 2
-
-    #Global vars
-    generation = 0
-    nnets = []
-    currentNnet = 0
-    species = Species.TETRIS
+    popSize = POP_SIZE
+    numParents = 10
 
     #Trackers
     highscore = -1
@@ -83,6 +92,9 @@ class Nnets:
 
     def __init__(self, species):
         self.species = species
+        self.nnets = []
+        self.currentNnet = 0
+        self.generation = 0
 
     def createPop(self):
         for i in range(self.popSize):
@@ -95,9 +107,12 @@ class Nnets:
 
     def getBestMove(self, inputList):
         return self.nnets[self.currentNnet].getOptimalOutput(inputList)
-        
-    def setFitness(self, score):
-        self.nnets[self.currentNnet].fitness = score
+
+    def setFitnessIndex(self, index, score):
+        self.nnets[index].fitness = score
+        #print(self.nnets[self.currentNnet].wInputToHidden)
+        #print(self.nnets[self.currentNnet].wHiddenToOutput)
+
         
         #update highscores
         if score > self.highscore:
@@ -110,6 +125,11 @@ class Nnets:
         self.genTotal += score
         self.genAvg = self.genTotal / (self.currentNnet + 1) 
         self.deltaAvg = self.genAvg - self.pastAvg
+        
+    def setFitness(self, score):
+        self.setFitnessIndex(self.currentNnet, score)
+
+        
 
     def evolve(self):
         #get top 10 performers
@@ -118,19 +138,16 @@ class Nnets:
         for i in range(self.numParents):
             bestNnets.append(self.popBestNnet())
 
-        print(bestNnets[0].fitness)
-
-        #randomly create a full population of children
-        #newNnets = []
-        #for i in range(self.popSize):
-        #    mom = bestNnets[np.random.randint(self.numParents)]
-        #    dad = bestNnets[np.random.randint(self.numParents)]
-        #    newNnets.append(self.makeChild(mom, dad))
-
-        #Rest of population will be modified versions of top 10
+        #Rest of population will be children of top 10
         for i in range(self.popSize - self.numParents):
             mom = bestNnets[np.random.randint(self.numParents)]
-            bestNnets.append(self.makeClone(mom))
+            dad = bestNnets[np.random.randint(self.numParents)]
+            bestNnets.append(self.makeChild(mom, dad))
+
+        #Rest of population will be modified versions of top 10
+        #for i in range(self.popSize - self.numParents):
+        #    mom = bestNnets[np.random.randint(self.numParents)]
+        #    bestNnets.append(self.makeClone(mom))
 
         self.generation += 1
         self.currentNnet = 0
@@ -160,4 +177,3 @@ class Nnets:
                 bestFit = self.nnets[i].fitness
 
         return self.nnets.pop(bestIndex)
-

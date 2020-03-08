@@ -24,7 +24,7 @@ player = False
 #setup global vars
 gameDisplay = ''
 grid = np.zeros((WIDTH, HEIGHT))
-fruit = [(9, 9)]
+inputs = []
 
 snakePlayer = Snake()
 
@@ -35,7 +35,7 @@ def startGame():
     global gameDisplay
     global snakePlayer
     pygame.init()
-    gameDisplay = pygame.display.set_mode((600, 600))
+    gameDisplay = pygame.display.set_mode((1200, 600))
     pygame.display.set_caption('Snake AI')
     resetGame()
     spawnFruit()
@@ -52,30 +52,38 @@ def startGame():
         #Break loop if we quit
         runloop = handleInput()
         #Get AI's best move
-        if not player:
-            doBestMove(getNeuralInput(snakePlayer), snakePlayer)
 
-        dt = clock.tick(400)
-        gameTime += dt
+        clearGrid()
+        updateGrid(snakePlayer.body, 1)
 
-        if snakePlayer.moveBody():
-            clearGrid()
-            updateGrid(snakePlayer.body, 1)
-        else:
-            handleLoss()
-
-        checkEat(snakePlayer)
-        updateGrid(fruit, 2)
+        snakePlayer.checkEat()
+        updateGrid([snakePlayer.fruit], 2)
 
         if(snakePlayer.health < 0):
             handleLoss()
 
 
+        if not player:
+            doBestMove(getNeuralInput(snakePlayer), snakePlayer)
+
+        dt = clock.tick(FPS)
+        gameTime += dt
+
+        if not snakePlayer.moveBody():
+            handleLoss()
+
+        clearGrid()
+        updateGrid(snakePlayer.body, 1)
+
+        snakePlayer.checkEat()
+        updateGrid([snakePlayer.fruit], 2)
+
+
         #Draw everything to screen
         gameDisplay.fill(pygame.Color('gray'))
-        showDebug(dt, gameTime)
-        showScore()
         showGrid()
+        showDebug(dt, gameTime)
+        showNnet(snek)
 
         pygame.display.update()
 
@@ -105,25 +113,65 @@ def showDebug(dt, gameTime):
     yOffset = showLabel(snek.generation, 'Current Generation: ', xOffset, yOffset)
     yOffset = showLabel(snek.currentNnet, 'Current Nnet: ', xOffset, yOffset)
     yOffset = showLabel(snek.highestGen, 'Best Gen So Far: ', xOffset, yOffset)
+    yOffset = showLabel(snakePlayer.calculateFitness(), 'Current Fitness ', xOffset, yOffset)
 
-    yOffset += 408
+    yOffset = 500
     yOffset = showLabel(int(snek.genAvg), 'Current Gen Average: ', xOffset, yOffset)
     yOffset = showLabel(int(snek.deltaAvg), 'Change From Last Gen: ', xOffset, yOffset)
     yOffset = showLabel(snek.highscore, 'Highscore (This Gen): ', xOffset, yOffset)
     yOffset = showLabel(snek.highestScore, 'Highest Score So Far: ', xOffset, yOffset)
 
-def showScore():
-    font = pygame.font.Font(os.path.join(CurrentPath, 'fonts/abel.ttf'), 80)
-    label = font.render('{}'.format(score), 1, (0, 0, 0))
-    offset = font.size('{}'.format(score))
-    gameDisplay.blit(label, (390 - offset[0], 707))
+def showNnet(nnets):
+    global inputs
+    xOffset = 600
+    yOffset = 0
+    
+    pygame.draw.rect(gameDisplay, (60, 60, 60), (xOffset, yOffset, 600, 600))
+
+    yOffset = 50
+
+    nnet = nnets.nnets[nnets.currentNnet]
+    outputs = nnet.getOutputs(inputs)
+
+    #Draw lines
+    for i in range(len(inputs)):
+        for j in range(len(outputs)):
+            color = (nnet.wInputToHidden[j][i] + 5) / 10
+            drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)),(xOffset + 400, yOffset + (int)(j / len(outputs) * 550)))
+
+    #Draw inputs
+    for i in range(len(inputs)):
+        color = inputs[i]
+        drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
+        #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 19)
+
+
+    #Draw output
+    dirs = ['Left', 'Right', 'Up', 'Down']
+    for i in range(len(outputs)):
+        color = outputs[i]
+        drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
+        #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 400, yOffset + (int)(i / len(outputs) * 550)), 20, 1)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 400, yOffset + (int)(i / len(outputs) * 550)), 19)
+
+        showLabel(dirs[i], 'Move', xOffset + 450, yOffset + (int)(i / len(outputs) * 550))
+
+            
+
+
+    #wInputsToHidden = nnet.wInputToHidden
+
+
+
 
 def showGrid():
-    xOffset = 150
-    yOffset = 150
-    xSize = 300 / WIDTH
-    ySize = 300 / HEIGHT
-    pygame.draw.rect(gameDisplay, pygame.Color('black'), (xOffset - 10, yOffset - 10, 320, 320))
+    xOffset = 0
+    yOffset = 0
+    xSize = 600 / WIDTH
+    ySize = 600 / HEIGHT
+    #pygame.draw.rect(gameDisplay, pygame.Color('black'), (xOffset - 10, yOffset - 10, 320, 320))
 
     for x in range(WIDTH):
         for y in range(HEIGHT):
@@ -157,7 +205,7 @@ def handleInput():
 #Current player or Nnet lost
 def handleLoss():    
     #update fitness of current Nnet
-    snek.setFitness(snakePlayer.getLength() * 1000 + snakePlayer.lifetime)
+    snek.setFitness(snakePlayer.calculateFitness())
     snek.moveToNextNnet()
     resetGame()
 
@@ -209,6 +257,7 @@ def updateGrid(toDraw, num):
     for dot in toDraw:
         grid[dot[0]][dot[1]] = num
 
+#NOT USED (Moved to Snake Class)
 def spawnFruit():
     global grid
     global fruit
@@ -225,49 +274,88 @@ def spawnFruit():
 
     fruit = [(x, y)]
 
+#NOT USED (Moved to Snake Class)
 def checkEat(snakePlayer):
     if snakePlayer.getHead() == fruit[0]:
         snakePlayer.body.append(fruit[0])
-        snakePlayer.health = 100
+        snakePlayer.health = MAXHP
         spawnFruit()
 
 
 def getNeuralInput(snakePlayer):
     global grid
+    global inputs
     inputs = []
     head = snakePlayer.getHead()
 
-    #get distance to walls left
-    inputs.append(head[0]) 
-    #top
-    inputs.append(head[1])
+    #get distance to walls left (normalized)
+    inputs.append(head[0] / (WIDTH - 1)) 
     #right
-    inputs.append(WIDTH - head[0] - 1)
-    #bot
-    inputs.append(WIDTH - head[1] - 1)
+    inputs.append((WIDTH - head[0] - 1) / (WIDTH - 1))
+    #up
+    inputs.append(head[1] / (HEIGHT - 1))
+    #down
+    inputs.append((WIDTH - head[1] - 1) / (HEIGHT - 1))
 
     #get distance to self
     distToSelf = getDistanceToObj(head, 1)
 
+    #if head[0] > 0 and distToSelf[0] > 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
 
-    inputs.append(distToSelf[0])
-    inputs.append(distToSelf[1])
-    inputs.append(distToSelf[2])
-    inputs.append(distToSelf[3])
+    #if head[0] < WIDTH - 1 and distToSelf[1] > 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+
+    #if head[1] > 0 and distToSelf[2] > 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+
+    #if head[1] < HEIGHT - 1 and distToSelf[3] > 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+
+
+    inputs.append(1 - distToSelf[0] / (WIDTH - 1))
+    inputs.append(1 - distToSelf[1] / (WIDTH - 1))
+    inputs.append(1 - distToSelf[2] / (HEIGHT - 1))
+    inputs.append(1 - distToSelf[3] / (HEIGHT - 1))
 
     #get distance to fruit
     distToFruit = getDistanceToObj(head, 2)
 
-    inputs.append(distToFruit[0])
-    inputs.append(distToFruit[1])
-    inputs.append(distToFruit[2])
-    inputs.append(distToFruit[3])
+    #if distToFruit[0] == 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+
+    #if distToFruit[1] == 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+
+    #if distToFruit[2] == 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)    
+
+    #if distToFruit[3] == 1:
+    #    inputs.append(1)
+    #else:
+    #    inputs.append(0)
+    inputs.append(1 - distToFruit[0] / (WIDTH - 1))
+    inputs.append(1 - distToFruit[1] / (WIDTH - 1))
+    inputs.append(1 - distToFruit[2] / (HEIGHT - 1))
+    inputs.append(1 - distToFruit[3] / (HEIGHT - 1))
 
 
     #inputs.append(snakePlayer.direction.value[0])
     #inputs.append(snakePlayer.direction.value[1])
-
-
     return inputs
 
 
@@ -292,10 +380,10 @@ def doBestMove(inputs, snakePlayer):
         moveDown(snakePlayer)
 
 def getDistanceToObj(head, num):
-    left = WIDTH * HEIGHT
-    right = WIDTH * HEIGHT
-    up = WIDTH * HEIGHT
-    down = WIDTH * HEIGHT
+    left = WIDTH - 1
+    right = WIDTH - 1
+    up = HEIGHT - 1
+    down = HEIGHT - 1
 
     count = 1
     i = head[0] - 1
