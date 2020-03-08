@@ -1,4 +1,5 @@
 import numpy as np
+import pygame
 from defs import *
 import copy 
 
@@ -59,6 +60,12 @@ class Nnet:
         
         return outputs
 
+    def getHidden(self, inputList):
+        inputs = np.array(inputList, ndmin=2).T
+        hiddenValues = sigmoid(np.dot(self.wInputToHidden, inputs))
+        return hiddenValues
+
+        
     def getOptimalOutput(self, inputList):
         output = self.getOutputs(inputList)
         return np.random.choice(np.flatnonzero(np.isclose(output, output.max())))

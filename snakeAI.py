@@ -131,14 +131,21 @@ def showNnet(nnets):
     yOffset = 50
 
     nnet = nnets.nnets[nnets.currentNnet]
+    hidden = nnet.getHidden(inputs)
     outputs = nnet.getOutputs(inputs)
 
     #Draw lines
     for i in range(len(inputs)):
-        for j in range(len(outputs)):
+        for j in range(len(hidden)):
             color = (nnet.wInputToHidden[j][i] + 5) / 10
             drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
-            pygame.draw.line(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)),(xOffset + 400, yOffset + (int)(j / len(outputs) * 550)))
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)),(xOffset + 300, yOffset + (int)(j / len(hidden) * 550)))
+    
+    for i in range(len(hidden)):
+        for j in range(len(outputs)):
+            color = (nnet.wHiddenToOutput[j][i] + 5) / 10
+            drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + 300, yOffset + (int)(i / len(hidden) * 550)),(xOffset + 500, yOffset + 40 + (int)(j / len(outputs) * 550)))
 
     #Draw inputs
     for i in range(len(inputs)):
@@ -147,6 +154,13 @@ def showNnet(nnets):
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
         pygame.draw.circle(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 19)
 
+    #Draw hidden
+    for i in range(len(hidden)):
+        color = hidden[i]
+        drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
+        #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 300, yOffset + (int)(i / len(hidden) * 550)), 19)
+
 
     #Draw output
     dirs = ['Left', 'Right', 'Up', 'Down']
@@ -154,9 +168,9 @@ def showNnet(nnets):
         color = outputs[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 400, yOffset + (int)(i / len(outputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 400, yOffset + (int)(i / len(outputs) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 500, 40 + yOffset + (int)(i / len(outputs) * 550)), 19)
 
-        showLabel(dirs[i], 'Move', xOffset + 450, yOffset + (int)(i / len(outputs) * 550))
+        showLabel(dirs[i], '', xOffset + 530, yOffset + (int)(i / len(outputs) * 550))
 
             
 

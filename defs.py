@@ -7,7 +7,7 @@ FPS = 30
 WIDTH = 10
 HEIGHT = 10
 MAXHP = 400
-MUTATION_RATE = 0.2
+MUTATION_RATE = 0.1
 POP_SIZE = 50
 
 shapes = {
@@ -46,7 +46,7 @@ class Dir(Enum):
 #Stores input hidden and out nums
 class Species(Enum):
 	TETRIS = (223, 20, 8)
-	SNAKE = (12, 4, 4)
+	SNAKE = (12, 12, 4)
 	HELI = (2, 5, 2)
 
 #Converts a 2D Array to a 1D list
@@ -90,7 +90,7 @@ def mutateArray(a, mutateChance):
     for x in range(rows):
         for y in range(cols):            
             if np.random.random() < mutateChance:
-                a[x][y] =  np.random.uniform(5, 5)
+                a[x][y] =  np.random.uniform(-5, 5)
 
     return a
 
