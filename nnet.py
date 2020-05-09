@@ -6,24 +6,13 @@ import copy
 
 
 class Nnet:
-
-    #Input: Grid (10 x 20) + currentShape (4 x 4) + currentShape.x + currentShape.y + nextShape x 4 + heldShape = 223
-    numInputs = 223
-
-    #Hidden Layer: I don't really know what I'm doing here so putting arbitrary value
-    numHidden = 20
-
-    #Output: moveLeft, moveRight, rotateLeft, rotateRight, fastDrop, slowDrop, holdBlock, doNothing
-    numOutputs = 8
-
-    #Weights: 20 x 223 matrix
     wInputToHidden = []
 
-    #Weights: 8 x 20 matrix
+    wHiddenToHidden = []
     wHiddenToOutput = []
 
     #Fitness:Calculated by score/time
-    fitness = -1
+    fitness = -10000000
 
     def __init__(self, species):
         self.numInputs = species.value[0]
@@ -33,9 +22,16 @@ class Nnet:
         self.initWeights()
 
     #Randomly generates a uniformly distributed weights matrix
-    def initWeights(self, low = -5, high = 5):
-        self.wInputToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numInputs))
-        self.wHiddenToOutput = np.random.uniform(low, high, size=(self.numOutputs, self.numHidden))
+    def initWeights(self, low = -1, high = 1):
+
+        #includes bias
+
+        self.wInputToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numInputs + 1))
+        self.wHiddenToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numHidden + 1))
+        self.wHiddenToOutput = np.random.uniform(low, high, size=(self.numOutputs, self.numHidden + 1))  
+
+        #self.wInputToHidden = 
+
         #self.wInputToHidden = np.array([
         #    [0.4, 0, 0, 0, -5, 0, 0, 0, 5, 0, 0, 0], 
         #    [0, 0.3, 0, 0, 0, -5, 0, 0, 0, 5, 0, 0], 
@@ -47,36 +43,54 @@ class Nnet:
     #Return outputs given an input 
     def getOutputs(self, inputList):
 
-        inputs = np.array(inputList, ndmin=2).T
+        inputs = addBias(np.array(inputList, ndmin=2).T)
 
-
-        hiddenValues = sigmoid(np.dot(self.wInputToHidden, inputs))
-        np.set_printoptions(suppress=True)
+        hiddenValues = addBias(sigmoid(np.dot(self.wInputToHidden, inputs)))
         #print(inputs)
         #print(self.wInputToHidden)
 
-        outputs = sigmoid(np.dot(self.wHiddenToOutput, hiddenValues))
+        hiddenValues2 = addBias(sigmoid(np.dot(self.wHiddenToHidden, hiddenValues)))
+
+
+
+        outputs = sigmoid(np.dot(self.wHiddenToOutput, hiddenValues2))
+        #outputs = sigmoid(np.dot(self.wManual, inputs)) 
+
         #print(outputs)
         
         return outputs
 
     def getHidden(self, inputList):
-        inputs = np.array(inputList, ndmin=2).T
+        inputs = addBias(np.array(inputList, ndmin=2).T)
+
         hiddenValues = sigmoid(np.dot(self.wInputToHidden, inputs))
         return hiddenValues
+    
+    def getHidden2(self, inputList):
+        inputs = addBias(np.array(inputList, ndmin=2).T)
+
+        hiddenValues = addBias(sigmoid(np.dot(self.wInputToHidden, inputs)))
+
+        hiddenValues2 = sigmoid(np.dot(self.wHiddenToHidden, hiddenValues))
+
+        return hiddenValues2
 
         
     def getOptimalOutput(self, inputList):
         output = self.getOutputs(inputList)
+
+        #randomly choose tiebreaks
         return np.random.choice(np.flatnonzero(np.isclose(output, output.max())))
 
 
     def makeChild(self, mom, dad):
         self.wInputToHidden = mutateArray(mixArrays(mom.wInputToHidden, dad.wInputToHidden), MUTATION_RATE)
+        self.wHiddenToHidden = mutateArray(mixArrays(mom.wHiddenToHidden, dad.wHiddenToHidden), MUTATION_RATE)
         self.wHiddenToOutput = mutateArray(mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput), MUTATION_RATE)
 
 
     def makeClone(self, mom):
+        print("Aren't calling this")
         self.wInputToHidden = mutateArray(copy.deepcopy(mom.wInputToHidden), MUTATION_RATE)
         self.wHiddenToOutput = mutateArray(copy.deepcopy(mom.wHiddenToOutput), MUTATION_RATE)
 
@@ -84,7 +98,7 @@ class Nnet:
 class Nnets:
     #Constants
     popSize = POP_SIZE
-    numParents = 10
+    numParents = PARENT_SIZE
 
     #Trackers
     highscore = -1

@@ -28,8 +28,8 @@ grid = np.zeros((10, 20))
 #https://tetris.wiki/Super_Rotation_System
 #changed to be row based and 4x4
 
-speeds = [500, 100, 1, 0]
-speedSetting = speeds[3]
+speeds = [FPS * 8, FPS * 2, 1]
+speedSetting = 2
 held = ''
 player = False
 holdUsed = False
@@ -70,12 +70,12 @@ def startGame():
         runloop = handleInput()
         #Get AI's best move
         if not player:
-            doBestMove(getNeuralInput())
+            doBestMove(getBestMove())
 
-        dt = clock.tick(300)
+        dt = clock.tick(FPS)
         gameTime += dt
         ticker += dt
-        if(ticker >= speedSetting):
+        if(ticker >= speeds[speedSetting%3]):
             forceMove += 1
             moveDown()
             ticker = 0
@@ -186,26 +186,34 @@ def createShape(shape):
 
 #Handle keyboard input
 def handleInput():
+    global speedSetting
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-            elif event.type == pygame.KEYDOWN and player:
-                if event.key == pygame.K_LEFT:
-                    moveLeft()
-                if event.key == pygame.K_RIGHT:
-                    moveRight()
-                if event.key == pygame.K_z:
-                    rotateLeft()
-                if event.key == pygame.K_x:
-                    rotateRight()
-                if event.key == pygame.K_DOWN:
-                    moveDown()
-                if event.key == pygame.K_UP:
-                    rotateRight()
-                if event.key == pygame.K_SPACE:
-                    fastDrop()
-                if event.key == pygame.K_LSHIFT:
-                    hold()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
+                    speedSetting += 1
+                if event.key == pygame.K_q:
+                    speedSetting -= 1
+                if player:
+                    if event.key == pygame.K_LEFT:
+                        moveLeft()
+                    if event.key == pygame.K_RIGHT:
+                        moveRight()
+                    if event.key == pygame.K_z:
+                        rotateLeft()
+                    if event.key == pygame.K_x:
+                        rotateRight()
+                    if event.key == pygame.K_DOWN:
+                        moveDown()
+                    if event.key == pygame.K_UP:
+                        rotateRight()
+                    if event.key == pygame.K_SPACE:
+                        fastDrop()
+                    if event.key == pygame.K_LSHIFT:
+                        hold()
+
+
     return True
 
 
@@ -514,32 +522,12 @@ def handleLoss():
 
 
 def getNeuralInput():
-    inputs = []
-    #Add grid
-    arrayToOnes(grid, inputs)
-
-    #Add current shape (rotation information is saved in shape)
-    arrayToOnes(currentShape.shape, inputs)
-
-    #Add current x and y
-    inputs.append(currentShape.x)
-    inputs.append(currentShape.y)
-
-    #Add next 4 shapes
-    #Append the letter as ascii as an optimization same as held
-    for shape in upcoming:
-        inputs.append(ord(shape))
-
-    #Add held shape
-    if held == '':
-        inputs.append(0)
-    else:
-        inputs.append(ord(held))
+    
 
     return inputs
 
 
-def doBestMove(inputs):
+def doBestMove(bestMove):
     # 0 : moveLeft
     # 1 : moveRight
     # 2 : rotateLeft
@@ -549,7 +537,6 @@ def doBestMove(inputs):
     # 6 : holdBlock
     # 7 : doNothing
 
-    bestMove = suisei.getBestMove(inputs)
     if bestMove == 0:
         #print('Move Left')
         moveLeft()

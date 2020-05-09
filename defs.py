@@ -3,12 +3,13 @@ import numpy as np
 
 DISPLAY_W = 800
 DISPLAY_H = 800
-FPS = 30
-WIDTH = 10
-HEIGHT = 10
+FPS = 60
+WIDTH = 20
+HEIGHT = 20
 MAXHP = 400
-MUTATION_RATE = 0.1
-POP_SIZE = 50
+MUTATION_RATE = 0.02
+POP_SIZE = 100
+PARENT_SIZE = 10
 
 shapes = {
     'I':[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
@@ -47,7 +48,6 @@ class Dir(Enum):
 class Species(Enum):
 	TETRIS = (223, 20, 8)
 	SNAKE = (12, 12, 4)
-	HELI = (2, 5, 2)
 
 #Converts a 2D Array to a 1D list
 def arrayToList(arr, result):
@@ -73,12 +73,14 @@ def mixArrays(a1, a2):
     
     output = np.zeros((rows, cols))
 
+
     for x in range(rows):
         for y in range(cols):
-                if a1[x][y] < a2[x][y]:
+                if np.random.random() < 0.5:
                     output[x][y] = a1[x][y]
                 else:
                     output[x][y] = a2[x][y]
+
 
     return output
 
@@ -87,12 +89,31 @@ def mutateArray(a, mutateChance):
     rows = a.shape[0]
     cols = a.shape[1]
 
+
     for x in range(rows):
         for y in range(cols):            
             if np.random.random() < mutateChance:
-                a[x][y] =  np.random.uniform(-5, 5)
+
+                a[x][y] += (np.random.normal() * 0.2)
+                if a[x][y] > 1:
+                    a[x][y] = 1
+                elif a[x][y] < -1:
+                    a[x][y] = -1
 
     return a
 
 def sigmoid(x):
 	return 1.0 / (1.0 + np.exp(-x))
+
+def addBias(a):
+    rows = a.shape[0]
+    cols = a.shape[1]
+
+    output = np.zeros((rows + 1, 1))
+
+    for x in range(rows):
+        output[x][0] = a[x][0]
+
+    output[rows][0] = 1
+
+    return output

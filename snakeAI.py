@@ -2,6 +2,7 @@
 #pip install pygame
 import pygame
 import numpy as np
+import math
 import random
 import sys
 import os
@@ -94,6 +95,7 @@ def resetGame():
     global grid
     global score
     global snakePlayer
+    #random.seed(1)
     grid = np.zeros((WIDTH, HEIGHT))
     spawnFruit()
     score = 0
@@ -132,34 +134,57 @@ def showNnet(nnets):
 
     nnet = nnets.nnets[nnets.currentNnet]
     hidden = nnet.getHidden(inputs)
+    hidden2 = nnet.getHidden2(inputs)
     outputs = nnet.getOutputs(inputs)
+
+    inputX = 100
+    hiddenX = 233
+    hidden2X = 366
+    outputX = 500
+
+
 
     #Draw lines
     for i in range(len(inputs)):
         for j in range(len(hidden)):
-            color = (nnet.wInputToHidden[j][i] + 5) / 10
+            color = (nnet.wInputToHidden[j][i] + 1) / 2
             drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
-            pygame.draw.line(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)),(xOffset + 300, yOffset + (int)(j / len(hidden) * 550)))
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + inputX, yOffset + (int)(i / len(inputs) * 550)),(xOffset + hiddenX, yOffset + (int)(j / len(hidden) * 550)))
     
     for i in range(len(hidden)):
-        for j in range(len(outputs)):
-            color = (nnet.wHiddenToOutput[j][i] + 5) / 10
+        for j in range(len(hidden2)):
+            color = (nnet.wHiddenToHidden[j][i] + 1) / 2
             drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
-            pygame.draw.line(gameDisplay, drawColor, (xOffset + 300, yOffset + (int)(i / len(hidden) * 550)),(xOffset + 500, yOffset + 40 + (int)(j / len(outputs) * 550)))
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + hiddenX, yOffset + (int)(i / len(hidden) * 550)),(xOffset + hidden2X, yOffset + (int)(j / len(hidden2) * 550)))
+
+    for i in range(len(hidden2)):
+        for j in range(len(outputs)):
+            color = (nnet.wHiddenToOutput[j][i] + 1) / 2
+            drawColor = ((int)(255 - color * 255), (int)(color * 255), 0)
+            pygame.draw.line(gameDisplay, drawColor, (xOffset + hidden2X, yOffset + (int)(i / len(hidden2) * 550)),(xOffset + outputX, yOffset + 40 + (int)(j / len(outputs) * 550)))
+
 
     #Draw inputs
     for i in range(len(inputs)):
         color = inputs[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + inputX, yOffset + (int)(i / len(inputs) * 550)), 19)
 
     #Draw hidden
     for i in range(len(hidden)):
         color = hidden[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 300, yOffset + (int)(i / len(hidden) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hiddenX, yOffset + (int)(i / len(hidden) * 550)), 19)
+    
+    #Draw hidden
+    for i in range(len(hidden2)):
+        color = hidden2[i]
+        drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
+        #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hidden2X, yOffset + (int)(i / len(hidden2) * 550)), 19)
+
 
 
     #Draw output
@@ -168,7 +193,7 @@ def showNnet(nnets):
         color = outputs[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 400, yOffset + (int)(i / len(outputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + 500, 40 + yOffset + (int)(i / len(outputs) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + outputX, 40 + yOffset + (int)(i / len(outputs) * 550)), 19)
 
         showLabel(dirs[i], '', xOffset + 530, yOffset + (int)(i / len(outputs) * 550))
 
@@ -196,6 +221,7 @@ def showGrid():
 
 #Handle keyboard input
 def handleInput():
+    global FPS
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
@@ -209,11 +235,17 @@ def handleInput():
                 if event.key == pygame.K_DOWN:
                     moveDown(snakePlayer)
             else:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    #Manual Kill Current NNet
-                    snek.setFitness(-1)
-                    snek.moveToNextNnet()
-                    resetGame()
+                if event.type == pygame.KEYDOWN: 
+                    if event.key == pygame.K_SPACE:
+                        #Manual Kill Current NNet
+                        snek.setFitness(-1)
+                        snek.moveToNextNnet()
+                        resetGame()
+                    if event.key == pygame.K_UP:
+                        FPS += 5
+                    if event.key == pygame.K_DOWN:
+                        FPS -= 5
+                    
     return True
 
 #Current player or Nnet lost
@@ -362,10 +394,10 @@ def getNeuralInput(snakePlayer):
     #    inputs.append(1)
     #else:
     #    inputs.append(0)
-    inputs.append(1 - distToFruit[0] / (WIDTH - 1))
-    inputs.append(1 - distToFruit[1] / (WIDTH - 1))
-    inputs.append(1 - distToFruit[2] / (HEIGHT - 1))
-    inputs.append(1 - distToFruit[3] / (HEIGHT - 1))
+    inputs.append(math.ceil(1 - distToFruit[0] / (WIDTH - 1)))
+    inputs.append(math.ceil(1 - distToFruit[1] / (WIDTH - 1)))
+    inputs.append(math.ceil(1 - distToFruit[2] / (HEIGHT - 1)))
+    inputs.append(math.ceil(1 - distToFruit[3] / (HEIGHT - 1)))
 
 
     #inputs.append(snakePlayer.direction.value[0])
