@@ -4,11 +4,11 @@ import numpy as np
 DISPLAY_W = 800
 DISPLAY_H = 800
 FPS = 60
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 10
+HEIGHT = 10
 MAXHP = 400
 MUTATION_RATE = 0.02
-POP_SIZE = 100
+POP_SIZE = 50
 PARENT_SIZE = 10
 
 shapes = {
@@ -47,7 +47,7 @@ class Dir(Enum):
 #Stores input hidden and out nums
 class Species(Enum):
 	TETRIS = (223, 20, 8)
-	SNAKE = (12, 12, 4)
+	SNAKE = (24, 18, 4)
 
 #Converts a 2D Array to a 1D list
 def arrayToList(arr, result):

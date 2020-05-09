@@ -169,21 +169,21 @@ def showNnet(nnets):
         color = inputs[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + inputX, yOffset + (int)(i / len(inputs) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + inputX, yOffset + (int)(i / len(inputs) * 550)), 11)
 
     #Draw hidden
     for i in range(len(hidden)):
         color = hidden[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hiddenX, yOffset + (int)(i / len(hidden) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hiddenX, yOffset + (int)(i / len(hidden) * 550)), 11)
     
     #Draw hidden
     for i in range(len(hidden2)):
         color = hidden2[i]
         drawColor = ((int)(color * 255), (int)(color * 255), (int) (color * 255))
         #pygame.draw.circle(gameDisplay, pygame.Color('white'), (xOffset + 100, yOffset + (int)(i / len(inputs) * 550)), 20, 1)
-        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hidden2X, yOffset + (int)(i / len(hidden2) * 550)), 19)
+        pygame.draw.circle(gameDisplay, drawColor, (xOffset + hidden2X, yOffset + (int)(i / len(hidden2) * 550)), 11)
 
 
 
@@ -331,77 +331,19 @@ def checkEat(snakePlayer):
 def getNeuralInput(snakePlayer):
     global grid
     global inputs
-    inputs = []
+    inputs = [0] * 24
     head = snakePlayer.getHead()
 
-    #get distance to walls left (normalized)
-    inputs.append(head[0] / (WIDTH - 1)) 
-    #right
-    inputs.append((WIDTH - head[0] - 1) / (WIDTH - 1))
-    #up
-    inputs.append(head[1] / (HEIGHT - 1))
-    #down
-    inputs.append((WIDTH - head[1] - 1) / (HEIGHT - 1))
+    #L, UL, U, UR, R, DR, D, DL
+    directions = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]]
 
-    #get distance to self
-    distToSelf = getDistanceToObj(head, 1)
+    #8 total directions
+    for i in range(8): 
+        tempVec = lookInDir(head, directions[i][0], directions[i][1])
+        inputs[i] = tempVec[0]
+        inputs[i + 8] = tempVec[1]
+        inputs[i + 16] = tempVec[2]
 
-    #if head[0] > 0 and distToSelf[0] > 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-    #if head[0] < WIDTH - 1 and distToSelf[1] > 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-    #if head[1] > 0 and distToSelf[2] > 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-    #if head[1] < HEIGHT - 1 and distToSelf[3] > 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-
-    inputs.append(1 - distToSelf[0] / (WIDTH - 1))
-    inputs.append(1 - distToSelf[1] / (WIDTH - 1))
-    inputs.append(1 - distToSelf[2] / (HEIGHT - 1))
-    inputs.append(1 - distToSelf[3] / (HEIGHT - 1))
-
-    #get distance to fruit
-    distToFruit = getDistanceToObj(head, 2)
-
-    #if distToFruit[0] == 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-    #if distToFruit[1] == 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-
-    #if distToFruit[2] == 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)    
-
-    #if distToFruit[3] == 1:
-    #    inputs.append(1)
-    #else:
-    #    inputs.append(0)
-    inputs.append(math.ceil(1 - distToFruit[0] / (WIDTH - 1)))
-    inputs.append(math.ceil(1 - distToFruit[1] / (WIDTH - 1)))
-    inputs.append(math.ceil(1 - distToFruit[2] / (HEIGHT - 1)))
-    inputs.append(math.ceil(1 - distToFruit[3] / (HEIGHT - 1)))
-
-
-    #inputs.append(snakePlayer.direction.value[0])
-    #inputs.append(snakePlayer.direction.value[1])
     return inputs
 
 
@@ -425,51 +367,33 @@ def doBestMove(inputs, snakePlayer):
     else:
         moveDown(snakePlayer)
 
-def getDistanceToObj(head, num):
-    left = WIDTH - 1
-    right = WIDTH - 1
-    up = HEIGHT - 1
-    down = HEIGHT - 1
+def lookInDir(head, xDir, yDir):
+    wallDist = 0
+    foodFound = 0
+    tailDist = 0
 
-    count = 1
-    i = head[0] - 1
-    while i >= 0:
-        if grid[i][head[1]] == num:
-            left = count
-            break
-        else:
-            count += 1
-        i -= 1
-    
-    count = 1
-    i = head[0] + 1
-    while i < WIDTH:
-        if grid[i][head[1]] == num:
-            right = count
-            break
-        else:
-            count += 1
-        i += 1
-    
-    count = 1
-    i = head[1] - 1
-    while i >= 0:
-        if grid[head[0]][i] == num:
-            up = count
-            break
-        else:
-            count += 1
-        i -= 1
-    
-    count = 1
-    i = head[1] + 1
-    while i < HEIGHT:
-        if grid[head[0]][i] == num:
-            down = count
-            break
-        else:
-            count += 1
-        i += 1
+    tailFound = False
+    increment = np.sqrt(xDir * xDir + yDir * yDir)
 
-    return (left, right, up, down)
-    
+
+    #move once in direction
+    distance = increment
+    x = head[0] + xDir
+    y = head[1] + yDir
+
+
+    while x >= 0 and x < WIDTH and y >= 0 and y < HEIGHT:
+        if foodFound == 0 and grid[x][y] == 2:
+            foodFound = 1
+
+        if not tailFound and grid[x][y] == 1:
+            tailFound = True
+            tailDist = 1/distance
+
+        x += xDir
+        y += yDir
+        distance += increment
+
+    wallDist = 1/distance
+
+    return (wallDist, foodFound, tailDist)
