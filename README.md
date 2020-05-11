@@ -75,7 +75,7 @@ The neural network visualizer draws colors each neuron between black (no activat
 
 ### Inputs
 The snake can see in 8 directions, starting from the left, and every 45 degrees rotated clockwise. For each vision direction, it can calculate the distance from the wall, its tail, and the fruit. 
--  The distance from the wall and its tail is represented by $\frac{1}{distance}$. This makes the input much stronger when the snake is one tile away from the wall or its tail (immediate danger of dying), compared to when the snake is two or more tiles away. 
+-  The distance from the wall and its tail is represented by 1/distance. This makes the input much stronger when the snake is one tile away from the wall or its tail (immediate danger of dying), compared to when the snake is two or more tiles away. 
 - The distance from fruits is represented by a 0 or 1. As long as the snake sees fruit in the vision direction, the input is given as a 1. I chose this because I wanted the motivation to go towards a fruit to be equally strong when the fruit is far away from the snake or when the fruit is close. 
 ![Neural Input](https://github.com/FrankWan27/SnakeAI/blob/master/img/inputs.png?raw=true)
 
@@ -93,7 +93,11 @@ The snakes learn through a genetic algorithm that simulates the process of evolu
 
 ### Selection
 
-Of the population of 50 snakes, we select the top 10 performers to be the parents based on their fitness score. I found [Chrispresso](https://www.youtube.com/channel/UCFnNAjMoIgeTAj7N_zXC7uQ)'s method of evaluating fitness to be most effective: $$fitness = steps + (2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]$$ This equation attempts to reward early survival, eating fruit, and penalize wasted steps. We will allow the top performing snakes to continue onto the next generation. The remaining 40 snakes in the next population will be comprised of children of these top 10 performers. 
+Of the population of 50 snakes, we select the top 10 performers to be the parents based on their fitness score. I found [Chrispresso](https://www.youtube.com/channel/UCFnNAjMoIgeTAj7N_zXC7uQ)'s method of evaluating fitness to be most effective:
+
+<img src="https://latex.codecogs.com/svg.latex?&space;fitness = steps + (2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" title="fitness = steps + (2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" />
+
+This equation attempts to reward early survival, eating fruit, and penalize wasted steps. We will allow the top performing snakes to continue onto the next generation. The remaining 40 snakes in the next population will be comprised of children of these top 10 performers. 
 
 ### Reproduction
 
@@ -121,59 +125,6 @@ After finishing the project, I thought of a few improvements I could have made:
 	- If we save the random seed used to generate the food spawn locations, we could reproduce the exact path a specific snake took. This way, we can replay the lives of high scoring snakes.
 
 Also, this project was originally intended to be a Tetris AI, but I got side tracked and made a Snake AI first.(I will continue the tetris project at a later date - stay tuned!
-
-
-## Authors
-
-* **Frank Wan** - [Github](https://github.com/FrankWan27)# Snake AI
-Uses an evolutionary approach to teach an AI how to play the classic game of Snake
-## Example
-![Example Snake](https://github.com/FrankWan27/SnakeAI/blob/master/img/examplesnake.gif?raw=true)
-
-## Table of Contents
-- [Overview](#overview)
-- [Installation](#installation)
-- [Controls](#controls)
-- [Neural Network Structure](#neural-network-structure)
-- [Genetic Algorithm](#genetic-algorithm)
-- [Authors](#authors)
-
-## Overview
-### Game Rules
-Following a standard set of snake rules:
-1. The snake must always be moving in a direction (Up, Down, Left, Right)
-2. The snake dies if it runs into a wall or its tail
-3. The snake grows by 1 for each fruit eaten, and a new fruit spawns in an unoccupied location
-
-## Installation
-
-### Clone
-
-- Clone this repo to your local machine using `git clone https://github.com/FrankWan27/SnakeAI.git`
-
-### Dependencies
-- [Python 3 ](https://www.python.org/downloads/)
-- [Pygame](https://www.pygame.org/)  - used to render graphics
-  ```pip install pygame```
-- [Matplotlib](https://matplotlib.org/) - used to draw graph to keep track of AI progress
-  ```pip install matplotlib```
-- [Numpy](https://numpy.org/) - used for matrix manipulation in numpy.ndarray
-  ```pip install numpy```
-### Usage
-To start running the snake AI, simply run in the parent directory
- ```python main.py```
- To continue running the snake AI from a saved neural network state, add the textfile as an argument
- ```python main.py Best-5-11.txt```
-
-## Controls
-The game can be played by the AI (AI Mode) or by a human (Human Mode). By default, the game starts in AI mode.
-### AI Mode
-- Up/Down Arrow Key - Increase/Decrease the snake's movement speed (FPS) by 5 (Max 60, Min 5, Default 60)
-- Space - Kill the current snake, assign a fitness score of -1 (won't reproduce), 
-
-
-## Neural Network Structure
-
 
 
 ## Authors
