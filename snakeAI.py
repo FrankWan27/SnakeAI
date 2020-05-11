@@ -221,6 +221,7 @@ def showGrid():
 #Handle keyboard input
 def handleInput():
     global FPS
+    global player
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 snek.writeBest("BestOnClose.txt")
@@ -234,6 +235,8 @@ def handleInput():
                     moveUp(snakePlayer)
                 if event.key == pygame.K_DOWN:
                     moveDown(snakePlayer)
+                if event.key == pygame.K_g:
+                    player = False
             else:
                 if event.type == pygame.KEYDOWN: 
                     if event.key == pygame.K_SPACE:
@@ -242,11 +245,15 @@ def handleInput():
                         snek.moveToNextNnet()
                         resetGame()
                     if event.key == pygame.K_UP:
-                        FPS += 5
+                        if(FPS < 55):
+                            FPS += 5
                     if event.key == pygame.K_DOWN:
-                        FPS -= 5
+                        if(FPS > 5):
+                            FPS -= 5
                     if event.key == pygame.K_w:
                         snek.writeBest("BestOnManual.txt")
+                    if event.key == pygame.K_g:
+                        player = True
 
                     
     return True
