@@ -95,7 +95,7 @@ The snakes learn through a genetic algorithm that simulates the process of evolu
 
 Of the population of 50 snakes, we select the top 10 performers to be the parents based on their fitness score. I found [Chrispresso](https://www.youtube.com/channel/UCFnNAjMoIgeTAj7N_zXC7uQ)'s method of evaluating fitness to be most effective:
 
-<img src="https://latex.codecogs.com/svg.latex?&space;fitness = steps + (2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" title="fitness = steps + (2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" />
+<img src="https://latex.codecogs.com/svg.latex?&space;fitness=steps+(2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" title="fitness=steps+(2^{fruit}+fruit^{2.1}*500)-[fruit^{1.2}*(0.25*steps)^{1.3}]" />
 
 This equation attempts to reward early survival, eating fruit, and penalize wasted steps. We will allow the top performing snakes to continue onto the next generation. The remaining 40 snakes in the next population will be comprised of children of these top 10 performers. 
 
