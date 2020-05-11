@@ -33,7 +33,7 @@ snakePlayer = Snake()
 snek = Nnets(Species.SNAKE)
 
 #Core game loop
-def startGame():
+def startGame(filename = None):
     global gameDisplay
     global snakePlayer
     pygame.init()
@@ -47,7 +47,7 @@ def startGame():
     dt = 0
     gameTime = 0
 
-    snek.createPop()
+    snek.createPop(filename)
 
     while runloop:        
         #Break loop if we quit
@@ -115,10 +115,9 @@ def showDebug(dt, gameTime):
     yOffset = showLabel(round(gameTime/1000, 2),'Game Time: ', xOffset, yOffset)
     yOffset = showLabel(snek.generation, 'Current Generation: ', xOffset, yOffset)
     yOffset = showLabel(snek.currentNnet, 'Current Nnet: ', xOffset, yOffset)
-    yOffset = showLabel(snek.highestGen, 'Best Gen So Far: ', xOffset, yOffset)
     yOffset = showLabel(snakePlayer.calculateFitness(), 'Current Fitness ', xOffset, yOffset)
 
-    yOffset = 500
+    yOffset = 520
     yOffset = showLabel(int(snek.genAvg), 'Current Gen Average: ', xOffset, yOffset)
     yOffset = showLabel(snek.highscore, 'Highscore (This Gen): ', xOffset, yOffset)
     yOffset = showLabel(snek.highestScore, 'Highest Score So Far: ', xOffset, yOffset)

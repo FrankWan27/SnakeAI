@@ -14,12 +14,16 @@ class Nnet:
     #Fitness:Calculated by score/time
     fitness = -10000000
 
-    def __init__(self, species):
+    def __init__(self, species, filename = None):
         self.numInputs = species.value[0]
         self.numHidden = species.value[1]
-        self.numOutputs = species.value[2]
-
-        self.initWeights()
+        self.numHidden2 = species.value[2]
+        self.numOutputs = species.value[3]
+        
+        if(filename != None):
+            self.loadBest(filename)
+        else:
+            self.initWeights()
 
     #Randomly generates a uniformly distributed weights matrix
     def initWeights(self, low = -1, high = 1):
@@ -27,8 +31,11 @@ class Nnet:
         #includes bias
 
         self.wInputToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numInputs + 1))
-        self.wHiddenToHidden = np.random.uniform(low, high, size=(self.numHidden, self.numHidden + 1))
-        self.wHiddenToOutput = np.random.uniform(low, high, size=(self.numOutputs, self.numHidden + 1))  
+        self.wHiddenToHidden = np.random.uniform(low, high, size=(self.numHidden2, self.numHidden + 1))
+        self.wHiddenToOutput = np.random.uniform(low, high, size=(self.numOutputs, self.numHidden2 + 1))  
+
+
+
 
         #self.wInputToHidden = 
 
@@ -88,6 +95,27 @@ class Nnet:
         self.wHiddenToHidden = mutateArray(mixArrays(mom.wHiddenToHidden, dad.wHiddenToHidden), MUTATION_RATE)
         self.wHiddenToOutput = mutateArray(mixArrays(mom.wHiddenToOutput, dad.wHiddenToOutput), MUTATION_RATE)
 
+    def loadBest(self, filename):
+
+        self.wInputToHidden = np.zeros((self.numHidden, self.numInputs + 1))
+        self.wHiddenToHidden = np.zeros((self.numHidden2, self.numHidden + 1))
+        self.wHiddenToOutput = np.zeros((self.numOutputs, self.numHidden2 + 1))  
+
+
+        f = open(filename, "r")
+
+        for x in range(self.wInputToHidden.shape[0]):
+            for y in range(self.wInputToHidden.shape[1]):
+                self.wInputToHidden [x][y] = float(f.readline())
+        
+        for x in range(self.wHiddenToHidden.shape[0]):
+            for y in range(self.wHiddenToHidden.shape[1]):
+                self.wHiddenToHidden[x][y] = float(f.readline())
+        
+        for x in range(self.wHiddenToOutput.shape[0]):
+            for y in range(self.wHiddenToOutput.shape[1]):
+                self.wHiddenToOutput[x][y] = float(f.readline())
+
 
 class Nnets:
     #Constants
@@ -115,9 +143,9 @@ class Nnets:
         self.currentNnet = 0
         self.generation = 0
 
-    def createPop(self):
+    def createPop(self, filename = None):
         for i in range(self.popSize):
-            self.nnets.append(Nnet(self.species))
+            self.nnets.append(Nnet(self.species, filename))
 
     def moveToNextNnet(self):
         self.currentNnet += 1
@@ -141,8 +169,9 @@ class Nnets:
                 self.allTimeNnet = self.nnets[index]
 
         #update averages
-        self.genTotal += score
-        self.genAvg = self.genTotal / (self.currentNnet + 1) 
+        if index < PARENT_SIZE:
+            self.genTotal += score
+            self.genAvg = self.genTotal / (index + 1) 
         
     def setFitness(self, score):
         self.setFitnessIndex(self.currentNnet, score)
@@ -215,9 +244,5 @@ class Nnets:
             wIH = arrayToString(self.allTimeNnet.wInputToHidden)
             wHH = arrayToString(self.allTimeNnet.wHiddenToHidden)
             wHO = arrayToString(self.allTimeNnet.wHiddenToOutput)
-            f.write(wIH + "\n" + wHH + "\n" + wHO)
+            f.write(wIH + wHH + wHO)
             f.close()
-
-    def loadBest(self, filename):
-        f = open(filename, "r")
-        

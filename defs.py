@@ -7,8 +7,8 @@ DISPLAY_H = 800
 FPS = 60
 WIDTH = 20
 HEIGHT = 20
-MAXHP = 400
-MUTATION_RATE = 0.15
+MAXHP = 500
+MUTATION_RATE = 0.05
 POP_SIZE = 50
 PARENT_SIZE = 10
 
@@ -48,7 +48,7 @@ class Dir(Enum):
 #Stores input hidden and out nums
 class Species(Enum):
 	TETRIS = (223, 20, 8)
-	SNAKE = (24, 18, 4)
+	SNAKE = (24, 20, 12, 4)
 
 #Converts a 2D Array to a 1D list
 def arrayToList(arr, result):
