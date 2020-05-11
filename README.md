@@ -21,7 +21,7 @@ Following a standard set of snake rules:
 1. The snake must always be moving in a direction (Up, Down, Left, Right)
 2. The snake dies if it runs into a wall or its tail
 3. The snake grows by 1 for each fruit eaten, and a new fruit spawns in an unoccupied location
-4. 
+
 ### Program Description
 
 The program window is divided into three sections. The top left section shows the current game window, which includes the current game world, snake, and fruit information. The top right section shows the current snake's neural network. The bottom section shows a graph which contains the highest and average score history of all the previous generations.
