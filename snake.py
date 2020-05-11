@@ -35,10 +35,7 @@ class Snake:
         else:
             self.body.append(head)
             postDist = self.distToFruit()
-            if postDist <= preDist:
-                self.fitness += 1
-            else:
-                self.fitness -= 1.5
+            self.fitness += 1
             self.health -= 1
             return True
 
@@ -83,5 +80,10 @@ class Snake:
         return abs(self.fruit[0] - self.getHead()[0]) + abs(self.fruit[1] - self.getHead()[1])
 
     def calculateFitness(self):
-        return (self.getLength() - 1) * 1000 + self.fitness
+        food = (self.getLength() - 2)
+        tempFit = self.fitness + (2**food + food**2.1*500) - (food**1.2*(0.25*self.fitness)**1.3)
+        if(tempFit < 0):
+            tempFit = 0
+
+        return tempFit
         

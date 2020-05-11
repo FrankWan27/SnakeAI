@@ -10,6 +10,7 @@ from nnet import Nnets
 from defs import *
 from snake import Snake
 
+
 # PyInstaller adds this attribute
 if getattr(sys, 'frozen', False):
     # Running in a bundle
@@ -36,10 +37,9 @@ def startGame():
     global gameDisplay
     global snakePlayer
     pygame.init()
-    gameDisplay = pygame.display.set_mode((1200, 600))
+    gameDisplay = pygame.display.set_mode((1200, 900))
     pygame.display.set_caption('Snake AI')
     resetGame()
-    spawnFruit()
 
     runloop = True
     clock = pygame.time.Clock()
@@ -79,13 +79,16 @@ def startGame():
         snakePlayer.checkEat()
         updateGrid([snakePlayer.fruit], 2)
 
+        
 
         #Draw everything to screen
         gameDisplay.fill(pygame.Color('gray'))
         showGrid()
         showDebug(dt, gameTime)
         showNnet(snek)
-
+        if(snek.graph is not None):
+            
+            gameDisplay.blit(snek.graph, (0, 600))
         pygame.display.update()
 
     pygame.display.quit()
@@ -95,9 +98,7 @@ def resetGame():
     global grid
     global score
     global snakePlayer
-    #random.seed(1)
     grid = np.zeros((WIDTH, HEIGHT))
-    spawnFruit()
     score = 0
     snakePlayer = Snake()
 
@@ -119,7 +120,6 @@ def showDebug(dt, gameTime):
 
     yOffset = 500
     yOffset = showLabel(int(snek.genAvg), 'Current Gen Average: ', xOffset, yOffset)
-    yOffset = showLabel(int(snek.deltaAvg), 'Change From Last Gen: ', xOffset, yOffset)
     yOffset = showLabel(snek.highscore, 'Highscore (This Gen): ', xOffset, yOffset)
     yOffset = showLabel(snek.highestScore, 'Highest Score So Far: ', xOffset, yOffset)
 
@@ -224,6 +224,7 @@ def handleInput():
     global FPS
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                snek.writeBest("BestOnClose.txt")
                 return False
             elif event.type == pygame.KEYDOWN and player:
                 if event.key == pygame.K_LEFT:
@@ -245,6 +246,9 @@ def handleInput():
                         FPS += 5
                     if event.key == pygame.K_DOWN:
                         FPS -= 5
+                    if event.key == pygame.K_w:
+                        snek.writeBest("BestOnManual.txt")
+
                     
     return True
 
@@ -303,31 +307,6 @@ def updateGrid(toDraw, num):
     for dot in toDraw:
         grid[dot[0]][dot[1]] = num
 
-#NOT USED (Moved to Snake Class)
-def spawnFruit():
-    global grid
-    global fruit
-    indexes = []
-    for x in range(WIDTH):
-        for y in range(HEIGHT):
-            if grid[x][y] == 0:
-                indexes.append(x * HEIGHT + y)
-
-    choice = random.choice(indexes)
-
-    y = choice % HEIGHT
-    x = int(choice / HEIGHT)
-
-    fruit = [(x, y)]
-
-#NOT USED (Moved to Snake Class)
-def checkEat(snakePlayer):
-    if snakePlayer.getHead() == fruit[0]:
-        snakePlayer.body.append(fruit[0])
-        snakePlayer.health = MAXHP
-        spawnFruit()
-
-
 def getNeuralInput(snakePlayer):
     global grid
     global inputs
@@ -381,6 +360,8 @@ def lookInDir(head, xDir, yDir):
     x = head[0] + xDir
     y = head[1] + yDir
 
+    normalize = increment * np.abs(xDir * WIDTH) + increment * np.abs(yDir * HEIGHT)
+    #1 - (distance / normalize)
 
     while x >= 0 and x < WIDTH and y >= 0 and y < HEIGHT:
         if foodFound == 0 and grid[x][y] == 2:
@@ -396,4 +377,4 @@ def lookInDir(head, xDir, yDir):
 
     wallDist = 1/distance
 
-    return (wallDist, foodFound, tailDist)
+    return (wallDist, tailDist, foodFound)

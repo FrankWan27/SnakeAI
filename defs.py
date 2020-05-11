@@ -1,13 +1,14 @@
 from enum import Enum
 import numpy as np
+import pygame
 
 DISPLAY_W = 800
 DISPLAY_H = 800
 FPS = 60
-WIDTH = 10
-HEIGHT = 10
+WIDTH = 20
+HEIGHT = 20
 MAXHP = 400
-MUTATION_RATE = 0.02
+MUTATION_RATE = 0.15
 POP_SIZE = 50
 PARENT_SIZE = 10
 
@@ -94,7 +95,8 @@ def mutateArray(a, mutateChance):
         for y in range(cols):            
             if np.random.random() < mutateChance:
 
-                a[x][y] += (np.random.normal() * 0.2)
+                #a[x][y] += np.random.gaussian() * 2
+                a[x][y] = np.random.uniform(-1, 1)
                 if a[x][y] > 1:
                     a[x][y] = 1
                 elif a[x][y] < -1:
@@ -104,6 +106,9 @@ def mutateArray(a, mutateChance):
 
 def sigmoid(x):
 	return 1.0 / (1.0 + np.exp(-x))
+
+def relu(x):
+    return np.maximum(0, x)
 
 def addBias(a):
     rows = a.shape[0]
@@ -117,3 +122,49 @@ def addBias(a):
     output[rows][0] = 1
 
     return output
+
+import matplotlib
+   
+import matplotlib.pyplot as plt
+import matplotlib.backends.backend_agg as agg
+
+
+
+
+def plot(Xdata, Ydata, Ydata2):
+    matplotlib.use("Agg")
+    fig = plt.figure(figsize=[12, 3])
+    canvas = agg.FigureCanvasAgg(fig)
+
+    plt.plot(Xdata, Ydata, label="Highest Score")
+    plt.plot(Xdata, Ydata2, label="Average Score")
+    plt.ylim(bottom=0)
+    plt.xlim(left=0)
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness Score')
+    plt.legend()
+    plt.tight_layout()
+
+    canvas.draw()
+    renderer = canvas.get_renderer()
+
+    raw_data = renderer.tostring_rgb()
+    size = canvas.get_width_height()
+    image = pygame.image.fromstring(raw_data, size, "RGB")
+    plt.close()
+
+    return image
+
+def arrayToString(a):
+    rows = a.shape[0]
+    cols = a.shape[1]
+
+    output = ""
+
+    for x in range(rows):
+        for y in range(cols):
+            output += str(a[x][y]) + "\n"
+
+    return output
+
+
