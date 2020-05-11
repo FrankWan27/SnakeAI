@@ -13,6 +13,8 @@ Uses an evolutionary approach to teach an AI how to play the classic game of Sna
 - [Afterthoughts](#afterthoughts)
 - [Authors](#authors)
 
+---
+
 ## Overview
 
 ### Game Rules
@@ -27,6 +29,8 @@ Following a standard set of snake rules:
 The program window is divided into three sections. The top left section shows the current game window, which includes the current game world, snake, and fruit information. The top right section shows the current snake's neural network. The bottom section shows a graph which contains the highest and average score history of all the previous generations.
 
 ![Overview](https://github.com/FrankWan27/SnakeAI/blob/master/img/overview.png?raw=true)
+
+---
 
 ## Installation
 
@@ -49,6 +53,8 @@ To start running the snake AI, simply run in the parent directory
  To continue running the snake AI from a saved neural network state, add the textfile as an argument
  ```python main.py Best-5-11.txt```
 
+---
+
 ## Controls
 The game can be played by the AI (AI Mode) or by a human (Human Mode). By default, the game starts in AI mode. Upon closing the game by clicking the X button, the best performing snake's neural network will be written to the file "BestOnClose.txt"
 
@@ -64,6 +70,8 @@ The game can be played by the AI (AI Mode) or by a human (Human Mode). By defaul
 - Up/Down/Left/Right Arrow Key - Change snake's direction to be up/down/left/right
 - G - Switch to AI Mode
 
+---
+
 ## Neural Network Structure
 
 This neural network is 24x20x12x4, with one input layer, two hidden layers, and one output layer. Each input and output neuron can have a value between 0 and 1, and each weight can have a value between -1 and 1.
@@ -71,7 +79,6 @@ This neural network is 24x20x12x4, with one input layer, two hidden layers, and 
 The neural network visualizer draws colors each neuron between black (no activation) and white (high activation). The weights are colored between red (inhibiting connection) and green (positive connection).
 
 ![Neural Net](https://github.com/FrankWan27/SnakeAI/blob/master/img/nnet.png?raw=true)
-
 
 ### Inputs
 The snake can see in 8 directions, starting from the left, and every 45 degrees rotated clockwise. For each vision direction, it can calculate the distance from the wall, its tail, and the fruit. 
@@ -86,6 +93,8 @@ The hidden layers are activated by the ReLU activation function.
 ### Output
 
 The output layer contains the four moves the snake can make (Left, Right, Up, Down) and uses the sigmoid activation function to obtain a probability. The snake performs the move that has the highest calculated probability. 
+
+---
 
 ## Genetic Algorithm
 
@@ -107,9 +116,12 @@ For each of the 40 child snakes, we randomly select 2 parents from the pool of b
 
 To ensure our population will continue to evolve, we will randomly mutate all 40 of the child snakes' genes. With a mutation rate of 5%, each mutated gene will be reset to a uniformly random value between -1 and 1. These 40 mutated child snakes and the 10 surviving snakes from the last generation will form the next population and repeat the entire process. 
 
+---
+
 ## Training Example 
 ![training](https://github.com/FrankWan27/SnakeAI/blob/master/img/training.gif?raw=true)
 
+---
 
 ## Afterthoughts
 
@@ -126,6 +138,7 @@ After finishing the project, I thought of a few improvements I could have made:
 
 Also, this project was originally intended to be a Tetris AI, but I got side tracked and made a Snake AI first.(I will continue the tetris project at a later date - stay tuned!
 
+---
 
 ## Authors
 
