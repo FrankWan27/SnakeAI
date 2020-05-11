@@ -81,7 +81,7 @@ class Snake:
 
     def calculateFitness(self):
         food = (self.getLength() - 2)
-        tempFit = self.fitness + (2**food + food**2.1*500) - (food**1.2*(0.25*self.fitness)**1.3)
+        tempFit = self.fitness + food**2*200 - (food*(0.25 * self.fitness))
         if(tempFit < 0):
             tempFit = 0
 
