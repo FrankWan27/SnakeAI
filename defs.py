@@ -5,12 +5,12 @@ import pygame
 DISPLAY_W = 800
 DISPLAY_H = 800
 FPS = 60
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 30
+HEIGHT = 30
 MAXHP = 500
 MUTATION_RATE = 0.05
 POP_SIZE = 50
-PARENT_SIZE = 10
+PARENT_SIZE = 30
 
 shapes = {
     'I':[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
@@ -138,8 +138,9 @@ def plot(Xdata, Ydata, Ydata2):
 
     plt.plot(Xdata, Ydata, label="Highest Score")
     plt.plot(Xdata, Ydata2, label="Average Score")
-    plt.ylim(bottom=0)
+   # plt.ylim(bottom=0)
     plt.xlim(left=0)
+    plt.yscale('log')
     plt.xlabel('Generation')
     plt.ylabel('Fitness Score')
     plt.legend()
