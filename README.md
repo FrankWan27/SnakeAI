@@ -121,6 +121,11 @@ To ensure our population will continue to evolve, we will randomly mutate all 40
 ## Training Example 
 ![training](https://github.com/FrankWan27/SnakeAI/blob/master/img/training.gif?raw=true)
 
+### Sped up snake at late stage of training
+
+<iframe src='//gifs.com/embed/snake-fast-3Qx8NM' frameborder='0' scrolling='no' width='600px' height='600px' style='-webkit-backface-visibility: hidden;-webkit-transform: scale(1);' ></iframe>
+
+
 ---
 
 ## Afterthoughts
