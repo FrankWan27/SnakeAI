@@ -49,8 +49,11 @@ The program window is divided into three sections. The top left section shows th
   ```pip install numpy```
 ### Usage
 To start running the snake AI, simply run main.py in the parent directory
+
  ```python main.py```
+ 
  To continue running the snake AI from a saved neural network state, add the textfile as an argument
+ 
  ```python main.py Best-5-11.txt```
 
 ---
