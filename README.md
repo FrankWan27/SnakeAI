@@ -48,7 +48,7 @@ The program window is divided into three sections. The top left section shows th
 - [Numpy](https://numpy.org/) - used for matrix manipulation in numpy.ndarray
   ```pip install numpy```
 ### Usage
-To start running the snake AI, simply run in the parent directory
+To start running the snake AI, simply run main.py in the parent directory
  ```python main.py```
  To continue running the snake AI from a saved neural network state, add the textfile as an argument
  ```python main.py Best-5-11.txt```
@@ -69,6 +69,17 @@ The game can be played by the AI (AI Mode) or by a human (Human Mode). By defaul
 
 - Up/Down/Left/Right Arrow Key - Change snake's direction to be up/down/left/right
 - G - Switch to AI Mode
+
+### Adjustable Parameters
+
+In the defs.py file, there are a few adjustable parameters at the top
+- FPS: controls starting FPS (default - 60)
+- WIDTH: width of game world (default - 30)
+- HEIGHT: height of game world (default - 30)
+- MAXHP: max steps snake can take without eating fruit before death (default - 500)
+- MUTATION_RATE: chance to have a mutation (default - 0.05)
+- POP_SIZE: population size of each generation (default - 50)
+- PARENT_SIZE: number of top performers we keep and reproduce from (default - 10)
 
 ---
 
