@@ -1,8 +1,9 @@
 # Snake AI
-Uses an evolutionary approach to teach an AI how to play the classic game of Snake
+Uses an evolutionary approach to teach an AI how to play the classic game of Snake 
 ## Example
 ![Example Snake](https://github.com/FrankWan27/SnakeAI/blob/master/img/examplesnake.gif?raw=true)
 
+[Click Here](#training-example) for more example videos
 ## Table of Contents
 - [Overview](#overview)
 - [Installation](#installation)
